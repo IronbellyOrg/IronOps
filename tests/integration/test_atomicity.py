@@ -164,6 +164,76 @@ def test_clone_failure_leaves_marketplace_unchanged(
     assert _head(tmp_marketplace_repo) == pre_head
 
 
+def test_push_failure_after_local_commit_preserves_pre_head_and_original_error(
+    monkeypatch,
+    tmp_path,
+    ironclaude_fixture_repo,
+    mock_git_clone,
+    mock_claude_validate,
+    tmp_marketplace_repo,
+    patched_builder_version,
+):
+    """FR-9: when commit succeeds but push fails, local HEAD resets to pre_head
+    and the ORIGINAL push error surfaces (not a secondary FR-9 message).
+
+    Regression test for the CI failure where publish.py masked the underlying
+    git push error with an FR-9 invariant message, leaving operators blind to
+    the actual root cause.
+    """
+    from ironops import publish as _publish
+
+    manifest_path = _manifest(tmp_path, ironclaude_fixture_repo)
+    pre_head = _head(tmp_marketplace_repo)
+
+    # Stub rsync (not installed in all dev envs) so we reach the git push path.
+    def fake_rsync(staging, plugin_dir):
+        plugin_dir.mkdir(parents=True, exist_ok=True)
+        (plugin_dir / "marker.txt").write_text("staged")
+
+    monkeypatch.setattr(_publish, "_rsync_staging", fake_rsync)
+
+    real_run = _publish._run
+
+    def fake_run(cmd, cwd=None):
+        # Allow everything except the push step; that one we force to fail.
+        if (
+            isinstance(cmd, list)
+            and len(cmd) >= 2
+            and cmd[0] == "git"
+            and cmd[1] == "push"
+        ):
+            return subprocess.CompletedProcess(
+                cmd, 1, "", "remote: Permission denied\nfatal: unable to access"
+            )
+        if (
+            isinstance(cmd, list)
+            and len(cmd) >= 2
+            and cmd[0] == "git"
+            and cmd[1] == "fetch"
+        ):
+            # Force the retry path to also fail so we exit via the original-error route
+            return subprocess.CompletedProcess(cmd, 1, "", "remote: Permission denied")
+        return real_run(cmd, cwd=cwd)
+
+    monkeypatch.setattr(_publish, "_run", fake_run)
+
+    ctx = BuildContext(
+        manifest_path=manifest_path,
+        staging_dir=tmp_path / "staging",
+        scratch_dir=tmp_path / "scratch",
+        marketplace_repo=tmp_marketplace_repo,
+        dry_run=False,
+    )
+    result = run_build(ctx)
+    assert not result.success
+    assert result.exit_code == ExitCode.PUBLISH_FAILED
+    # FR-9: local HEAD reset to pre_head despite the intermediate commit
+    assert _head(tmp_marketplace_repo) == pre_head
+    # The ORIGINAL push error must surface, not a swallowed FR-9 message
+    assert "Permission denied" in result.summary or "push" in result.summary.lower()
+    assert "FR-9 invariant violated" not in result.summary
+
+
 def test_no_partial_marketplace_write_on_failure(
     monkeypatch,
     tmp_path,

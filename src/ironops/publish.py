@@ -129,7 +129,12 @@ def _commit_and_push(
 def verify_marketplace_unchanged_on_failure(
     marketplace_repo: Path, pre_build_head: str
 ) -> None:
-    """FR-9 invariant — HEAD must equal pre-build SHA when publish failed."""
+    """FR-9 invariant — HEAD must equal pre-build SHA when publish failed.
+
+    Called after _reset_local_to_pre_head() best-effort cleanup. If this
+    still trips, the local clone is in an unrecoverable inconsistent
+    state and the operator needs to investigate.
+    """
     proc = _run(["git", "rev-parse", "HEAD"], cwd=marketplace_repo)
     if proc.returncode != 0:
         raise PublishFailed(f"could not verify marketplace HEAD: {proc.stderr.strip()}")
@@ -137,8 +142,28 @@ def verify_marketplace_unchanged_on_failure(
     if current != pre_build_head:
         raise PublishFailed(
             f"FR-9 invariant violated: marketplace HEAD changed from "
-            f"{pre_build_head} to {current} despite publish failure"
+            f"{pre_build_head} to {current} despite publish failure (cleanup also failed)"
         )
+
+
+def _reset_local_to_pre_head(marketplace_repo: Path, pre_head: str) -> str | None:
+    """Best-effort: undo any local commits made during a failed publish.
+
+    A successful ``git commit`` followed by a failed ``git push`` leaves
+    the local clone ahead of the remote. To preserve FR-9 atomicity at
+    the local-clone level (so the next CI run sees a clean state), reset
+    the working tree back to ``pre_head``. Returns an error string if
+    cleanup itself failed, else None.
+    """
+    current = _run(["git", "rev-parse", "HEAD"], cwd=marketplace_repo)
+    if current.returncode != 0:
+        return f"rev-parse during cleanup failed: {current.stderr.strip()}"
+    if current.stdout.strip() == pre_head:
+        return None  # nothing to undo
+    reset = _run(["git", "reset", "--hard", pre_head], cwd=marketplace_repo)
+    if reset.returncode != 0:
+        return f"reset --hard {pre_head} failed: {reset.stderr.strip()}"
+    return None
 
 
 def publish_to_marketplace(
@@ -150,8 +175,12 @@ def publish_to_marketplace(
 ) -> PublishResult:
     """End-to-end atomic publish: rsync → commit → push.
 
-    On any failure, raises PublishFailed and verifies the marketplace
-    HEAD is unchanged (FR-9-A2).
+    On any failure, performs a best-effort local reset to ``pre_head``
+    so the FR-9 invariant ("marketplace HEAD unchanged on failure")
+    holds at both the local-clone and remote levels, then re-raises the
+    ORIGINAL PublishFailed (the underlying root cause — e.g. git push
+    auth failure — is what the operator needs to see, not a secondary
+    invariant message).
     """
     marketplace_repo = Path(marketplace_repo)
     pre_head_proc = _run(["git", "rev-parse", "HEAD"], cwd=marketplace_repo)
@@ -167,12 +196,19 @@ def publish_to_marketplace(
     try:
         _rsync_staging(staging_dir, plugin_dir)
         result = _commit_and_push(marketplace_repo, message, branch)
-    except PublishFailed:
-        # Best-effort invariant check; if HEAD changed we re-raise with note
-        try:
+    except PublishFailed as original:
+        cleanup_err = _reset_local_to_pre_head(marketplace_repo, pre_head)
+        if cleanup_err is not None:
+            # Cleanup itself failed — assert FR-9 invariant; this will
+            # either hold (no commit had happened) or surface the
+            # unrecoverable state explicitly.
             verify_marketplace_unchanged_on_failure(marketplace_repo, pre_head)
-        except PublishFailed as inv:
-            raise inv  # invariant violation supersedes original
+            # If verify did not raise but cleanup reported an error,
+            # annotate the original with the cleanup note.
+            raise PublishFailed(
+                f"{original} (cleanup note: {cleanup_err})"
+            ) from original
+        # Cleanup succeeded — re-raise the ORIGINAL push/commit error.
         raise
 
     return result
