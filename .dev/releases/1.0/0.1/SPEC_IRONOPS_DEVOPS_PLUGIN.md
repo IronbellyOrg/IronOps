@@ -50,7 +50,7 @@ distribution_repo: "git@github.com:IronbellyOrg/ironops-marketplace.git"
 ### 2.1 In Scope for v0.1
 
 - A YAML manifest (`manifest.yaml`) declaring upstream sources and per-source file/directory allowlists.
-- A Python-based builder (`scripts/build_plugin.py` and helpers) that consumes the manifest and produces a `dist/plugins/ironops-devops/` tree.
+- A Python-based builder packaged as `src/ironops/` (installable via `uv pip install -e .`, entry point `ironops` CLI; `scripts/` reserved for future helper scripts only — per gap-fill disposition **D4** in `research/05-gap-fill-disposition.md`) that consumes the manifest and produces a `dist/plugins/ironops-devops/` tree.
 - Rendered Claude Code plugin components: `agents/`, `skills/`, `commands/`, `plugin.json`, `META.json`, `THIRD_PARTY_LICENSES.md`.
 - Generation of `.claude-plugin/marketplace.json` for the marketplace repo, listing the single `ironops-devops` plugin.
 - Validation gate: `claude plugin validate` must exit zero before publish.
@@ -240,7 +240,9 @@ Every published commit on the marketplace repo MUST contain a `META.json` whose 
 
 ### NFR-7 — Failure transparency
 
-Build failures MUST emit (a) a one-line stderr summary, (b) a categorical failure code (e.g., `MANIFEST_INVALID`, `UNRESOLVED_IMPORT`, `CO_IMPORT_MISSING`, `VALIDATE_FAILED`, `PATH_ESCAPE`, `UPSTREAM_CLONE_FAILED`, `SELF_OVERWRITE`), and (c) a full log artifact retained for 30 days.
+Build failures MUST emit (a) a one-line stderr summary, (b) one of the 9 categorical failure codes — `MANIFEST_INVALID`, `UNRESOLVED_IMPORT`, `CO_IMPORT_MISSING`, `VALIDATE_FAILED`, `PATH_ESCAPE`, `UPSTREAM_CLONE_FAILED`, `SELF_OVERWRITE`, `BUILDER_DIRTY_TREE`, `PUBLISH_FAILED` — and (c) a full log artifact retained for 30 days.
+
+The `PUBLISH_FAILED` code (added per gap-fill disposition **D3** in `research/05-gap-fill-disposition.md`) covers rsync or `git add/commit/push` failures during Stage 6 publish that do not map cleanly to the prior 8 categorical codes; these failures previously had no distinct categorical label, so D3 mandates this 9th code as a deliberate, documented spec evolution rather than a silent extension. `BUILDER_DIRTY_TREE` (already referenced in §9 guard table at Stage 0 / FR-12) is included explicitly here for completeness of the enumeration.
 
 ### NFR-8 — Backwards-compat for manifest schema
 
@@ -575,7 +577,7 @@ Carried forward from decision brief §5. Lock the literal file list during the t
 
 ## 17. Definitions
 
-- **Builder:** the Python program in `/config/workspace/IronOps/scripts/` that consumes `manifest.yaml` and produces the rendered plugin tree.
+- **Builder:** the Python package at `/config/workspace/IronOps/src/ironops/` (installable via `uv pip install -e .`, exposing the `ironops` CLI entry point per `pyproject.toml [project.scripts]`; `scripts/` is reserved for future helper scripts only — per gap-fill disposition **D4** in `research/05-gap-fill-disposition.md`) that consumes `manifest.yaml` and produces the rendered plugin tree.
 - **Upstream:** any repository declared in `sources` (v0.1: just IronClaude).
 - **Manifest:** the YAML file declaring sources and per-source imports.
 - **Rendered plugin tree:** the on-disk staging directory containing `agents/`, `skills/`, `commands/`, `plugin.json`, `META.json`, `THIRD_PARTY_LICENSES.md`. Becomes `plugins/ironops-devops/` in the marketplace repo on publish.
