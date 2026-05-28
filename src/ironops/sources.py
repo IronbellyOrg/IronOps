@@ -145,9 +145,7 @@ def _clone_one(spec: SourceSpec, dest: Path) -> ClonedSource:
     )
 
 
-def clone_sources(
-    manifest: Manifest, scratch_dir: Path
-) -> dict[str, ClonedSource]:
+def clone_sources(manifest: Manifest, scratch_dir: Path) -> dict[str, ClonedSource]:
     """Clone every source declared in the manifest into ``scratch_dir``."""
     scratch_dir = Path(scratch_dir)
     scratch_dir.mkdir(parents=True, exist_ok=True)
@@ -155,8 +153,6 @@ def clone_sources(
     for source_id, spec in manifest.sources.items():
         dest = scratch_dir / source_id
         if dest.exists():
-            raise UpstreamCloneFailed(
-                f"scratch destination {dest} already exists"
-            )
+            raise UpstreamCloneFailed(f"scratch destination {dest} already exists")
         out[source_id] = _clone_one(spec, dest)
     return out

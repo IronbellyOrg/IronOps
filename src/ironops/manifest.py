@@ -74,9 +74,7 @@ def validate_schema_version(raw: Any) -> None:
             f"schema_version must be the string '1', got {type(raw).__name__}: {raw!r}"
         )
     if raw != "1":
-        raise ManifestInvalid(
-            f"schema_version must be the string '1', got {raw!r}"
-        )
+        raise ManifestInvalid(f"schema_version must be the string '1', got {raw!r}")
 
 
 def validate_imports_non_empty(imports: Any) -> None:
@@ -84,9 +82,7 @@ def validate_imports_non_empty(imports: Any) -> None:
     if imports is None:
         raise ManifestInvalid("imports key missing from manifest")
     if not isinstance(imports, list):
-        raise ManifestInvalid(
-            f"imports must be a list, got {type(imports).__name__}"
-        )
+        raise ManifestInvalid(f"imports must be a list, got {type(imports).__name__}")
     if len(imports) == 0:
         raise ManifestInvalid("imports list is empty")
 
@@ -178,9 +174,7 @@ def load_manifest(path: Path) -> Manifest:
     sources_raw = data.get("sources") or {}
     if not isinstance(sources_raw, dict) or not sources_raw:
         raise ManifestInvalid("sources block must be a non-empty mapping")
-    sources = {
-        sid: _parse_source(sid, sraw) for sid, sraw in sources_raw.items()
-    }
+    sources = {sid: _parse_source(sid, sraw) for sid, sraw in sources_raw.items()}
 
     validate_imports_non_empty(data.get("imports"))
     imports = [_parse_import(raw) for raw in data["imports"]]
@@ -188,9 +182,7 @@ def load_manifest(path: Path) -> Manifest:
     # FR-1 — each import.source must reference a declared source id
     for imp in imports:
         if imp.source not in sources:
-            raise ManifestInvalid(
-                f"import references unknown source id {imp.source!r}"
-            )
+            raise ManifestInvalid(f"import references unknown source id {imp.source!r}")
 
     validate_no_self_overwrite(imports)
 

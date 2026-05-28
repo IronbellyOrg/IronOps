@@ -50,12 +50,18 @@ def tmp_marketplace_repo(tmp_path: Path) -> Path:
     """A real git repo with one initial commit so push targets work."""
     repo = tmp_path / "marketplace"
     repo.mkdir()
-    subprocess.run(["git", "init", "-b", "main"], cwd=repo, check=True, capture_output=True)
-    subprocess.run(["git", "config", "user.email", "test@ironops.local"], cwd=repo, check=True)
+    subprocess.run(
+        ["git", "init", "-b", "main"], cwd=repo, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@ironops.local"], cwd=repo, check=True
+    )
     subprocess.run(["git", "config", "user.name", "IronOps Test"], cwd=repo, check=True)
     (repo / "README.md").write_text("# marketplace\n")
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
-    subprocess.run(["git", "commit", "-m", "init"], cwd=repo, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "init"], cwd=repo, check=True, capture_output=True
+    )
     return repo
 
 
@@ -76,11 +82,17 @@ def ironclaude_fixture_repo(tmp_path_factory, ironclaude_snapshot_path: Path) ->
     license_src = ironclaude_snapshot_path / "LICENSE"
     if license_src.exists():
         shutil.copy2(license_src, repo / "LICENSE")
-    subprocess.run(["git", "init", "-b", "main"], cwd=repo, check=True, capture_output=True)
-    subprocess.run(["git", "config", "user.email", "test@ironops.local"], cwd=repo, check=True)
+    subprocess.run(
+        ["git", "init", "-b", "main"], cwd=repo, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@ironops.local"], cwd=repo, check=True
+    )
     subprocess.run(["git", "config", "user.name", "IronOps Test"], cwd=repo, check=True)
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
-    subprocess.run(["git", "commit", "-m", "snapshot"], cwd=repo, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "snapshot"], cwd=repo, check=True, capture_output=True
+    )
     return repo
 
 
@@ -115,8 +127,10 @@ def mock_git_clone(monkeypatch, ironclaude_fixture_repo: Path):
                 if controller.behavior == "fail-ls-remote":
                     return subprocess.CompletedProcess(cmd, 128, "", "ls-remote error")
                 return subprocess.CompletedProcess(
-                    cmd, 0,
-                    "ref: refs/heads/main\tHEAD\nabc123\tHEAD\n", "",
+                    cmd,
+                    0,
+                    "ref: refs/heads/main\tHEAD\nabc123\tHEAD\n",
+                    "",
                 )
             if sub == "clone":
                 if controller.behavior == "fail-clone":
@@ -141,9 +155,16 @@ def mock_claude_validate(monkeypatch):
     def fake_run_validator(staging_dir, log_dir=None) -> _v.ValidatorResult:
         if controller.exit_code != 0:
             from ironops.errors import ValidateFailed
-            raise ValidateFailed(f"mocked validator failure exit={controller.exit_code}")
-        if "warning" in controller.stdout.lower() or "warning" in controller.stderr.lower():
+
+            raise ValidateFailed(
+                f"mocked validator failure exit={controller.exit_code}"
+            )
+        if (
+            "warning" in controller.stdout.lower()
+            or "warning" in controller.stderr.lower()
+        ):
             from ironops.errors import ValidateFailed
+
             raise ValidateFailed("mocked validator warning")
         return _v.ValidatorResult(
             exit_code=controller.exit_code,
@@ -162,7 +183,5 @@ def patched_builder_version(monkeypatch) -> Iterator[str]:
     sha = "0" * 40
     from ironops import metadata
 
-    monkeypatch.setattr(
-        metadata, "_resolve_builder_version", lambda *a, **k: sha
-    )
+    monkeypatch.setattr(metadata, "_resolve_builder_version", lambda *a, **k: sha)
     yield sha

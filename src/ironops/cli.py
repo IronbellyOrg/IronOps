@@ -96,7 +96,9 @@ def validate_cmd(plugin_dir: Path) -> None:
     """Run ``claude plugin validate`` against an existing plugin tree."""
     try:
         result = run_validator(plugin_dir)
-        click.echo(f"validate ok: exit={result.exit_code} duration={result.duration_s:.2f}s")
+        click.echo(
+            f"validate ok: exit={result.exit_code} duration={result.duration_s:.2f}s"
+        )
         sys.exit(int(ExitCode.SUCCESS))
     except Exception as exc:
         click.echo(f"[VALIDATE_FAILED] {exc}", err=True)
@@ -109,9 +111,17 @@ def version() -> None:
     sha = "unknown"
     try:
         proc = subprocess.run(
-            ["git", "-C", str(Path(__file__).resolve().parents[2]),
-             "rev-parse", "HEAD"],
-            capture_output=True, text=True, timeout=5, check=False,
+            [
+                "git",
+                "-C",
+                str(Path(__file__).resolve().parents[2]),
+                "rev-parse",
+                "HEAD",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
         )
         if proc.returncode == 0:
             sha = proc.stdout.strip()[:12]

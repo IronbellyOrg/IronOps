@@ -5,11 +5,9 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-import pytest
-
 from ironops import metadata as _metadata
 from ironops import render as _render
-from ironops.errors import BuilderDirtyTree, ExitCode, PathEscape, ValidateFailed
+from ironops.errors import BuilderDirtyTree, ExitCode, PathEscape
 from ironops.pipeline import BuildContext, run_build
 
 
@@ -38,18 +36,26 @@ marketplace:
 
 
 def _head(repo: Path) -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
+    return subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=repo, text=True
+    ).strip()
 
 
 def test_render_failure_leaves_marketplace_unchanged(
-    monkeypatch, tmp_path, ironclaude_fixture_repo, mock_git_clone, mock_claude_validate,
-    tmp_marketplace_repo, patched_builder_version
+    monkeypatch,
+    tmp_path,
+    ironclaude_fixture_repo,
+    mock_git_clone,
+    mock_claude_validate,
+    tmp_marketplace_repo,
+    patched_builder_version,
 ):
     manifest_path = _manifest(tmp_path, ironclaude_fixture_repo)
     pre_head = _head(tmp_marketplace_repo)
 
     def fail_path_safety(*a, **kw):
         raise PathEscape("forced render failure")
+
     monkeypatch.setattr(_render, "enforce_path_safety", fail_path_safety)
 
     ctx = BuildContext(
@@ -66,8 +72,12 @@ def test_render_failure_leaves_marketplace_unchanged(
 
 
 def test_validate_failure_leaves_marketplace_unchanged(
-    tmp_path, ironclaude_fixture_repo, mock_git_clone, mock_claude_validate,
-    tmp_marketplace_repo, patched_builder_version
+    tmp_path,
+    ironclaude_fixture_repo,
+    mock_git_clone,
+    mock_claude_validate,
+    tmp_marketplace_repo,
+    patched_builder_version,
 ):
     manifest_path = _manifest(tmp_path, ironclaude_fixture_repo)
     pre_head = _head(tmp_marketplace_repo)
@@ -87,14 +97,20 @@ def test_validate_failure_leaves_marketplace_unchanged(
 
 
 def test_metadata_failure_leaves_marketplace_unchanged(
-    monkeypatch, tmp_path, ironclaude_fixture_repo, mock_git_clone, mock_claude_validate,
-    tmp_marketplace_repo, patched_builder_version
+    monkeypatch,
+    tmp_path,
+    ironclaude_fixture_repo,
+    mock_git_clone,
+    mock_claude_validate,
+    tmp_marketplace_repo,
+    patched_builder_version,
 ):
     manifest_path = _manifest(tmp_path, ironclaude_fixture_repo)
     pre_head = _head(tmp_marketplace_repo)
 
     def fail_meta(*a, **kw):
         raise BuilderDirtyTree("forced metadata failure")
+
     monkeypatch.setattr(_metadata, "write_meta_json", fail_meta)
 
     ctx = BuildContext(
@@ -110,17 +126,29 @@ def test_metadata_failure_leaves_marketplace_unchanged(
 
 
 def test_clone_failure_leaves_marketplace_unchanged(
-    monkeypatch, tmp_path, ironclaude_fixture_repo, tmp_marketplace_repo, patched_builder_version, mock_claude_validate
+    monkeypatch,
+    tmp_path,
+    ironclaude_fixture_repo,
+    tmp_marketplace_repo,
+    patched_builder_version,
+    mock_claude_validate,
 ):
     manifest_path = _manifest(tmp_path, ironclaude_fixture_repo)
     pre_head = _head(tmp_marketplace_repo)
 
     # Force git operations to fail
     real_run = subprocess.run
+
     def fake(cmd, *a, **kw):
-        if isinstance(cmd, list) and len(cmd) >= 2 and cmd[0] == "git" and cmd[1] in {"clone", "ls-remote"}:
+        if (
+            isinstance(cmd, list)
+            and len(cmd) >= 2
+            and cmd[0] == "git"
+            and cmd[1] in {"clone", "ls-remote"}
+        ):
             return subprocess.CompletedProcess(cmd, 128, "", "forced clone failure")
         return real_run(cmd, *a, **kw)
+
     monkeypatch.setattr(subprocess, "run", fake)
 
     ctx = BuildContext(
@@ -137,8 +165,13 @@ def test_clone_failure_leaves_marketplace_unchanged(
 
 
 def test_no_partial_marketplace_write_on_failure(
-    monkeypatch, tmp_path, ironclaude_fixture_repo, mock_git_clone, mock_claude_validate,
-    tmp_marketplace_repo, patched_builder_version
+    monkeypatch,
+    tmp_path,
+    ironclaude_fixture_repo,
+    mock_git_clone,
+    mock_claude_validate,
+    tmp_marketplace_repo,
+    patched_builder_version,
 ):
     """The marketplace plugins/ironops-devops/ should not exist if build never succeeded."""
     manifest_path = _manifest(tmp_path, ironclaude_fixture_repo)
@@ -156,13 +189,10 @@ def test_no_partial_marketplace_write_on_failure(
     # The plugin subdir may not exist; if it does, it's at least committed
     plugins = tmp_marketplace_repo / "plugins" / "ironops-devops"
     if plugins.exists():
-        # The marketplace HEAD is unchanged so any directory must not be tracked
-        status = subprocess.run(
-            ["git", "status", "--porcelain"], cwd=tmp_marketplace_repo,
-            capture_output=True, text=True,
-        )
         # FR-9 — HEAD unchanged is the primary invariant; any untracked files are tolerable
         # as long as commit history is preserved
         assert "plugins/ironops-devops" not in subprocess.check_output(
-            ["git", "log", "--oneline", "-1"], cwd=tmp_marketplace_repo, text=True,
+            ["git", "log", "--oneline", "-1"],
+            cwd=tmp_marketplace_repo,
+            text=True,
         )

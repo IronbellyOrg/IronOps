@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import re
 import subprocess
-from pathlib import Path
 
 import pytest
 
@@ -34,14 +33,23 @@ def synth_inputs(tmp_path):
         marketplace=MarketplaceSpec(name="ironops", owner={"name": "IronbellyOrg"}),
         raw_sha256="d" * 64,
     )
-    clones = {"src": ClonedSource(id="src", path=tmp_path / "src-clone", resolved_ref="main", resolved_sha="e" * 40)}
+    clones = {
+        "src": ClonedSource(
+            id="src",
+            path=tmp_path / "src-clone",
+            resolved_ref="main",
+            resolved_sha="e" * 40,
+        )
+    }
     (tmp_path / "src-clone").mkdir(exist_ok=True)
-    rendered = [RenderedFile(
-        from_path=tmp_path / "src-clone" / "a.md",
-        to_path=tmp_path / "staging" / "agents" / "a.md",
-        kind="agent",
-        source_id="src",
-    )]
+    rendered = [
+        RenderedFile(
+            from_path=tmp_path / "src-clone" / "a.md",
+            to_path=tmp_path / "staging" / "agents" / "a.md",
+            kind="agent",
+            source_id="src",
+        )
+    ]
     staging = tmp_path / "staging"
     staging.mkdir()
     (staging / "agents").mkdir()
@@ -53,7 +61,9 @@ def test_plugin_json_omits_version(synth_inputs):
     m, clones, rendered, staging = synth_inputs
     out = metadata.write_plugin_json(m, staging)
     data = json.loads(out.read_text())
-    assert "version" not in data, "FR-13-A1 — plugin.json MUST NOT contain a version key"
+    assert "version" not in data, (
+        "FR-13-A1 — plugin.json MUST NOT contain a version key"
+    )
     assert data["name"] == "ironops-devops"
     assert data["description"] == "DevOps plugin"
 
@@ -153,6 +163,7 @@ def test_resolve_builder_version_fails_on_dirty_tree(monkeypatch, tmp_path):
         if "status" in cmd and "--porcelain" in cmd:
             return subprocess.CompletedProcess(cmd, 0, " M src/foo.py\n", "")
         return real_run(cmd, *a, **kw)
+
     monkeypatch.setattr(subprocess, "run", fake)
     with pytest.raises(BuilderDirtyTree):
         metadata._resolve_builder_version(tmp_path)

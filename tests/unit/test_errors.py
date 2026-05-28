@@ -25,7 +25,9 @@ NFR7_CASES = [
     pytest.param("CO_IMPORT_MISSING", 12, CoImportMissing, id="CO_IMPORT_MISSING"),
     pytest.param("VALIDATE_FAILED", 13, ValidateFailed, id="VALIDATE_FAILED"),
     pytest.param("PATH_ESCAPE", 14, PathEscape, id="PATH_ESCAPE"),
-    pytest.param("UPSTREAM_CLONE_FAILED", 15, UpstreamCloneFailed, id="UPSTREAM_CLONE_FAILED"),
+    pytest.param(
+        "UPSTREAM_CLONE_FAILED", 15, UpstreamCloneFailed, id="UPSTREAM_CLONE_FAILED"
+    ),
     pytest.param("SELF_OVERWRITE", 16, SelfOverwrite, id="SELF_OVERWRITE"),
     pytest.param("BUILDER_DIRTY_TREE", 17, BuilderDirtyTree, id="BUILDER_DIRTY_TREE"),
     pytest.param("PUBLISH_FAILED", 18, PublishFailed, id="PUBLISH_FAILED"),

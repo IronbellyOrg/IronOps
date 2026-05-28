@@ -40,9 +40,7 @@ def _run(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess
 
 def _get_default_branch(marketplace_repo: Path) -> str:
     """Return the marketplace repo's current branch (HEAD symbolic ref)."""
-    proc = _run(
-        ["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=marketplace_repo
-    )
+    proc = _run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=marketplace_repo)
     if proc.returncode != 0 or not proc.stdout.strip():
         raise PublishFailed(
             f"could not resolve marketplace branch: {proc.stderr.strip()}"
@@ -77,13 +75,9 @@ def _build_commit_message(
     builder_version: str,
 ) -> str:
     """AC-6 — commit message includes builder_version and at least one source SHA."""
-    source_parts = [
-        f"{sid}@{clone.resolved_sha}" for sid, clone in clones.items()
-    ]
+    source_parts = [f"{sid}@{clone.resolved_sha}" for sid, clone in clones.items()]
     sources_str = "sources: " + " ".join(source_parts)
-    return (
-        f"{manifest.plugin.name}: built from {builder_version} | {sources_str}"
-    )
+    return f"{manifest.plugin.name}: built from {builder_version} | {sources_str}"
 
 
 def _commit_and_push(
@@ -118,9 +112,7 @@ def _commit_and_push(
             raise PublishFailed(
                 f"git push failed and fetch retry failed: {push.stderr.strip()} / {fetch.stderr.strip()}"
             )
-        rebase = _run(
-            ["git", "rebase", f"origin/{branch}"], cwd=marketplace_repo
-        )
+        rebase = _run(["git", "rebase", f"origin/{branch}"], cwd=marketplace_repo)
         if rebase.returncode != 0:
             raise PublishFailed(
                 f"git push failed and rebase retry failed: {rebase.stderr.strip()}"
@@ -140,9 +132,7 @@ def verify_marketplace_unchanged_on_failure(
     """FR-9 invariant — HEAD must equal pre-build SHA when publish failed."""
     proc = _run(["git", "rev-parse", "HEAD"], cwd=marketplace_repo)
     if proc.returncode != 0:
-        raise PublishFailed(
-            f"could not verify marketplace HEAD: {proc.stderr.strip()}"
-        )
+        raise PublishFailed(f"could not verify marketplace HEAD: {proc.stderr.strip()}")
     current = proc.stdout.strip()
     if current != pre_build_head:
         raise PublishFailed(

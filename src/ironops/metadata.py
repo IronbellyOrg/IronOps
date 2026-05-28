@@ -181,7 +181,9 @@ def write_third_party_licenses(
             lines.append(f"- Resolved SHA: `{clone.resolved_sha}`")
             license_path = clone.path / "LICENSE"
             if license_path.exists():
-                lines.append(f"- Upstream LICENSE: `{source_id}/LICENSE` (see source repo)")
+                lines.append(
+                    f"- Upstream LICENSE: `{source_id}/LICENSE` (see source repo)"
+                )
         lines.append("")
         lines.append("### Imported files")
         lines.append("")

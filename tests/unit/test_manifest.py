@@ -17,7 +17,8 @@ def _write(path: Path, content: str) -> Path:
 
 
 def _valid_yaml(extra_imports: str = "") -> str:
-    return """
+    return (
+        """
     schema_version: "1"
     sources:
       ironclaude:
@@ -27,7 +28,9 @@ def _valid_yaml(extra_imports: str = "") -> str:
         from: "src/agents/devops-architect.md"
         to: "agents/devops-architect.md"
         kind: agent
-    """ + (extra_imports or "") + """
+    """
+        + (extra_imports or "")
+        + """
     plugin:
       name: "ironops-devops"
       description: "test"
@@ -36,6 +39,7 @@ def _valid_yaml(extra_imports: str = "") -> str:
       owner:
         name: "IronbellyOrg"
     """
+    )
 
 
 def test_good_manifest_loads(tmp_path):
@@ -75,7 +79,7 @@ def test_schema_version_missing(tmp_path):
 
 def test_empty_imports_rejected(tmp_path):
     yml = _valid_yaml().replace(
-        "imports:\n      - source: ironclaude\n        from: \"src/agents/devops-architect.md\"\n        to: \"agents/devops-architect.md\"\n        kind: agent\n    ",
+        'imports:\n      - source: ironclaude\n        from: "src/agents/devops-architect.md"\n        to: "agents/devops-architect.md"\n        kind: agent\n    ',
         "imports: []\n    ",
     )
     p = _write(tmp_path / "m.yaml", yml)
@@ -106,8 +110,8 @@ def test_missing_imports_key_rejected(tmp_path):
 @pytest.mark.parametrize("reserved", sorted(RESERVED_GENERATED_PATHS))
 def test_self_overwrite_rejected(tmp_path, reserved):
     yml = _valid_yaml().replace(
-        "to: \"agents/devops-architect.md\"",
-        f"to: \"{reserved}\"",
+        'to: "agents/devops-architect.md"',
+        f'to: "{reserved}"',
     )
     p = _write(tmp_path / "m.yaml", yml)
     with pytest.raises(SelfOverwrite) as exc:
@@ -120,7 +124,9 @@ def test_hook_kind_rejected(tmp_path):
     p = _write(tmp_path / "m.yaml", yml)
     with pytest.raises(ManifestInvalid) as exc:
         load_manifest(p)
-    assert "hook-config" in str(exc.value).lower() or "reserved" in str(exc.value).lower()
+    assert (
+        "hook-config" in str(exc.value).lower() or "reserved" in str(exc.value).lower()
+    )
 
 
 def test_unknown_source_id_rejected(tmp_path):

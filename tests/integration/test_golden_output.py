@@ -13,7 +13,6 @@ from pathlib import Path
 
 import pytest
 
-from ironops.errors import ExitCode
 from ironops.pipeline import BuildContext, run_build
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -22,8 +21,8 @@ GOLDEN_PATH = REPO_ROOT / "tests" / "fixtures" / "golden" / "v0_1_plugin_tree.js
 
 
 pytestmark = pytest.mark.skipif(
-    not PROD_MANIFEST.exists(),
-    reason="v0.1 production manifest not yet present — Phase 7 Step 7.3 creates it",
+    not GOLDEN_PATH.exists(),
+    reason="golden tree not yet bootstrapped — REGEN_GOLDEN=1 against the production manifest (requires upstream access) creates it",
 )
 
 
@@ -37,7 +36,9 @@ def _hash_tree(root: Path) -> dict[str, str]:
     return out
 
 
-def test_golden_snapshot_matches(tmp_path, mock_git_clone, mock_claude_validate, patched_builder_version):
+def test_golden_snapshot_matches(
+    tmp_path, mock_git_clone, mock_claude_validate, patched_builder_version
+):
     """Run the builder against the v0.1 manifest, compare against golden tree."""
     ctx = BuildContext(
         manifest_path=PROD_MANIFEST,
@@ -58,7 +59,9 @@ def test_golden_snapshot_matches(tmp_path, mock_git_clone, mock_claude_validate,
     assert actual == expected, "golden snapshot mismatch"
 
 
-def test_golden_file_count_matches_summary(tmp_path, mock_git_clone, mock_claude_validate, patched_builder_version):
+def test_golden_file_count_matches_summary(
+    tmp_path, mock_git_clone, mock_claude_validate, patched_builder_version
+):
     ctx = BuildContext(
         manifest_path=PROD_MANIFEST,
         staging_dir=tmp_path / "staging",
@@ -70,4 +73,7 @@ def test_golden_file_count_matches_summary(tmp_path, mock_git_clone, mock_claude
     meta = json.loads((tmp_path / "staging" / "META.json").read_text())
     # +4 generated files (plugin.json, META.json itself, licenses, marketplace.json)
     actual_files = sum(1 for p in (tmp_path / "staging").rglob("*") if p.is_file())
-    assert meta["summary"]["total_files"] + 4 == actual_files or meta["summary"]["total_files"] <= actual_files
+    assert (
+        meta["summary"]["total_files"] + 4 == actual_files
+        or meta["summary"]["total_files"] <= actual_files
+    )

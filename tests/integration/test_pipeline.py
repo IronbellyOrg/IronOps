@@ -7,8 +7,6 @@ import re
 import subprocess
 from pathlib import Path
 
-import pytest
-
 from ironops.errors import ExitCode
 from ironops.pipeline import BuildContext, run_build
 
@@ -54,7 +52,11 @@ marketplace:
 
 
 def test_pipeline_dry_run_happy_path(
-    tmp_path, ironclaude_fixture_repo, mock_git_clone, mock_claude_validate, patched_builder_version
+    tmp_path,
+    ironclaude_fixture_repo,
+    mock_git_clone,
+    mock_claude_validate,
+    patched_builder_version,
 ):
     """Full pipeline dry-run against the hermetic snapshot exits SUCCESS."""
     manifest_path = _make_manifest(tmp_path, ironclaude_fixture_repo)
@@ -71,7 +73,11 @@ def test_pipeline_dry_run_happy_path(
 
 
 def test_pipeline_emits_all_four_generated_files(
-    tmp_path, ironclaude_fixture_repo, mock_git_clone, mock_claude_validate, patched_builder_version
+    tmp_path,
+    ironclaude_fixture_repo,
+    mock_git_clone,
+    mock_claude_validate,
+    patched_builder_version,
 ):
     manifest_path = _make_manifest(tmp_path, ironclaude_fixture_repo)
     staging = tmp_path / "staging"
@@ -90,7 +96,12 @@ def test_pipeline_emits_all_four_generated_files(
 
 
 def test_pipeline_validator_failure_aborts_publish(
-    tmp_path, ironclaude_fixture_repo, mock_git_clone, mock_claude_validate, tmp_marketplace_repo, patched_builder_version
+    tmp_path,
+    ironclaude_fixture_repo,
+    mock_git_clone,
+    mock_claude_validate,
+    tmp_marketplace_repo,
+    patched_builder_version,
 ):
     """When validator fails, publish stage is never reached."""
     manifest_path = _make_manifest(tmp_path, ironclaude_fixture_repo)
@@ -117,7 +128,11 @@ def test_pipeline_validator_failure_aborts_publish(
 
 
 def test_pipeline_publish_message_format(
-    tmp_path, ironclaude_fixture_repo, mock_git_clone, mock_claude_validate, patched_builder_version
+    tmp_path,
+    ironclaude_fixture_repo,
+    mock_git_clone,
+    mock_claude_validate,
+    patched_builder_version,
 ):
     """AC-6 — commit message includes builder_version + at least one source SHA.
 
@@ -143,7 +158,11 @@ def test_pipeline_publish_message_format(
 
 
 def test_pipeline_stage_timing_recorded(
-    tmp_path, ironclaude_fixture_repo, mock_git_clone, mock_claude_validate, patched_builder_version
+    tmp_path,
+    ironclaude_fixture_repo,
+    mock_git_clone,
+    mock_claude_validate,
+    patched_builder_version,
 ):
     manifest_path = _make_manifest(tmp_path, ironclaude_fixture_repo)
     ctx = BuildContext(
@@ -158,7 +177,11 @@ def test_pipeline_stage_timing_recorded(
 
 
 def test_pipeline_deterministic_excluding_built_at(
-    tmp_path, ironclaude_fixture_repo, mock_git_clone, mock_claude_validate, patched_builder_version
+    tmp_path,
+    ironclaude_fixture_repo,
+    mock_git_clone,
+    mock_claude_validate,
+    patched_builder_version,
 ):
     """NFR-1 — back-to-back builds produce identical files except META.json.built_at."""
     manifest_path = _make_manifest(tmp_path, ironclaude_fixture_repo)

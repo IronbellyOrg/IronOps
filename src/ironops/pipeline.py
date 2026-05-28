@@ -65,9 +65,7 @@ def _log(ctx: BuildContext, message: str) -> None:
 def _check_timing(ctx: BuildContext) -> None:
     elapsed = time.monotonic() - ctx.start_time
     if elapsed > HARD_FAIL_SECONDS:
-        raise RuntimeError(
-            f"build exceeded {HARD_FAIL_SECONDS}s hard ceiling (NFR-2)"
-        )
+        raise RuntimeError(f"build exceeded {HARD_FAIL_SECONDS}s hard ceiling (NFR-2)")
     if elapsed > SOFT_WARN_SECONDS and ctx.verbose:
         print(
             f"[ironops] warning: build elapsed {elapsed:.1f}s > {SOFT_WARN_SECONDS}s soft (NFR-2)",
@@ -90,9 +88,7 @@ def _stage_0_preflight(ctx: BuildContext) -> str:
     return builder_version
 
 
-def _stage_1_clone(
-    ctx: BuildContext, manifest: Manifest
-) -> dict[str, ClonedSource]:
+def _stage_1_clone(ctx: BuildContext, manifest: Manifest) -> dict[str, ClonedSource]:
     """Shallow-clone every upstream source declared in the manifest."""
     _log(ctx, "stage 1: clone")
     return sources.clone_sources(manifest, ctx.scratch_dir)
@@ -129,9 +125,7 @@ def _stage_4_write_metadata(
     metadata.write_meta_json(
         manifest, clones, rendered, ctx.staging_dir, builder_version
     )
-    metadata.write_third_party_licenses(
-        manifest, clones, rendered, ctx.staging_dir
-    )
+    metadata.write_third_party_licenses(manifest, clones, rendered, ctx.staging_dir)
     metadata.write_marketplace_json(manifest, ctx.staging_dir)
 
 

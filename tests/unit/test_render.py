@@ -8,9 +8,14 @@ from pathlib import Path
 import pytest
 
 from ironops.errors import CoImportMissing, PathEscape, UnresolvedImport
-from ironops.manifest import ImportSpec, Manifest, MarketplaceSpec, PluginSpec, SourceSpec
+from ironops.manifest import (
+    ImportSpec,
+    Manifest,
+    MarketplaceSpec,
+    PluginSpec,
+    SourceSpec,
+)
 from ironops.render import (
-    RenderedFile,
     enforce_co_imports,
     enforce_path_safety,
     render_to_staging,
@@ -30,7 +35,11 @@ def _make_clone(tmp_path: Path) -> tuple[Path, dict[str, ClonedSource]]:
     (skills / "SKILL.md").write_text("# foo skill\n")
     (skills / "refs.md").write_text("# refs\n")
     (commands / "cmd1.md").write_text("# cmd1\nSkill sc:foo-protocol\n")
-    return root, {"src": ClonedSource(id="src", path=root, resolved_ref="main", resolved_sha="a" * 40)}
+    return root, {
+        "src": ClonedSource(
+            id="src", path=root, resolved_ref="main", resolved_sha="a" * 40
+        )
+    }
 
 
 def _make_manifest(imports):
@@ -47,9 +56,16 @@ def _make_manifest(imports):
 def test_single_file_emits_one_rendered_file(tmp_path):
     root, clones = _make_clone(tmp_path)
     staging = tmp_path / "staging"
-    m = _make_manifest([
-        ImportSpec(source="src", from_path="src/superclaude/agents/a1.md", to="agents/a1.md", kind="agent")
-    ])
+    m = _make_manifest(
+        [
+            ImportSpec(
+                source="src",
+                from_path="src/superclaude/agents/a1.md",
+                to="agents/a1.md",
+                kind="agent",
+            )
+        ]
+    )
     out = render_to_staging(m, clones, staging)
     assert len(out) == 1
     assert (staging / "agents" / "a1.md").exists()
@@ -58,10 +74,16 @@ def test_single_file_emits_one_rendered_file(tmp_path):
 def test_directory_import_expands_fanout(tmp_path):
     root, clones = _make_clone(tmp_path)
     staging = tmp_path / "staging"
-    m = _make_manifest([
-        ImportSpec(source="src", from_path="src/superclaude/skills/sc-foo-protocol/",
-                   to="skills/sc-foo-protocol/", kind="skill")
-    ])
+    m = _make_manifest(
+        [
+            ImportSpec(
+                source="src",
+                from_path="src/superclaude/skills/sc-foo-protocol/",
+                to="skills/sc-foo-protocol/",
+                kind="skill",
+            )
+        ]
+    )
     out = render_to_staging(m, clones, staging)
     assert len(out) == 2  # SKILL.md + refs.md
     assert (staging / "skills" / "sc-foo-protocol" / "SKILL.md").exists()
@@ -72,25 +94,44 @@ def test_byte_identical_copy(tmp_path):
     """FR-7 — file bytes must be identical after copy."""
     root, clones = _make_clone(tmp_path)
     staging = tmp_path / "staging"
-    m = _make_manifest([
-        ImportSpec(source="src", from_path="src/superclaude/agents/a1.md", to="agents/a1.md", kind="agent")
-    ])
-    out = render_to_staging(m, clones, staging)
+    m = _make_manifest(
+        [
+            ImportSpec(
+                source="src",
+                from_path="src/superclaude/agents/a1.md",
+                to="agents/a1.md",
+                kind="agent",
+            )
+        ]
+    )
+    render_to_staging(m, clones, staging)
     src_bytes = (root / "src" / "superclaude" / "agents" / "a1.md").read_bytes()
     dst_bytes = (staging / "agents" / "a1.md").read_bytes()
-    assert hashlib.sha256(src_bytes).hexdigest() == hashlib.sha256(dst_bytes).hexdigest()
+    assert (
+        hashlib.sha256(src_bytes).hexdigest() == hashlib.sha256(dst_bytes).hexdigest()
+    )
 
 
 def test_co_import_command_with_skill_passes(tmp_path):
     """FR-4 — command + companion skill = no error."""
     root, clones = _make_clone(tmp_path)
     staging = tmp_path / "staging"
-    m = _make_manifest([
-        ImportSpec(source="src", from_path="src/superclaude/skills/sc-foo-protocol/",
-                   to="skills/sc-foo-protocol/", kind="skill"),
-        ImportSpec(source="src", from_path="src/superclaude/commands/cmd1.md",
-                   to="commands/cmd1.md", kind="command"),
-    ])
+    m = _make_manifest(
+        [
+            ImportSpec(
+                source="src",
+                from_path="src/superclaude/skills/sc-foo-protocol/",
+                to="skills/sc-foo-protocol/",
+                kind="skill",
+            ),
+            ImportSpec(
+                source="src",
+                from_path="src/superclaude/commands/cmd1.md",
+                to="commands/cmd1.md",
+                kind="command",
+            ),
+        ]
+    )
     out = render_to_staging(m, clones, staging)
     enforce_co_imports(out)  # no raise
 
@@ -99,10 +140,16 @@ def test_co_import_command_without_skill_fails(tmp_path):
     """FR-4-A1 — command without companion skill = CoImportMissing."""
     root, clones = _make_clone(tmp_path)
     staging = tmp_path / "staging"
-    m = _make_manifest([
-        ImportSpec(source="src", from_path="src/superclaude/commands/cmd1.md",
-                   to="commands/cmd1.md", kind="command"),
-    ])
+    m = _make_manifest(
+        [
+            ImportSpec(
+                source="src",
+                from_path="src/superclaude/commands/cmd1.md",
+                to="commands/cmd1.md",
+                kind="command",
+            ),
+        ]
+    )
     out = render_to_staging(m, clones, staging)
     with pytest.raises(CoImportMissing) as exc:
         enforce_co_imports(out)
@@ -116,10 +163,16 @@ def test_co_import_skill_without_command_warns(tmp_path):
     """FR-4-A2 — skill imported without citing command is a warning, not failure."""
     root, clones = _make_clone(tmp_path)
     staging = tmp_path / "staging"
-    m = _make_manifest([
-        ImportSpec(source="src", from_path="src/superclaude/skills/sc-foo-protocol/",
-                   to="skills/sc-foo-protocol/", kind="skill"),
-    ])
+    m = _make_manifest(
+        [
+            ImportSpec(
+                source="src",
+                from_path="src/superclaude/skills/sc-foo-protocol/",
+                to="skills/sc-foo-protocol/",
+                kind="skill",
+            ),
+        ]
+    )
     out = render_to_staging(m, clones, staging)
     with pytest.warns(UserWarning):
         enforce_co_imports(out)
@@ -134,9 +187,16 @@ def test_path_escape_in_to_field_rejected(tmp_path, escape_to):
     """FR-8 — import.to with absolute path or .. segment is rejected."""
     root, clones = _make_clone(tmp_path)
     staging = tmp_path / "staging"
-    m = _make_manifest([
-        ImportSpec(source="src", from_path="src/superclaude/agents/a1.md", to=escape_to, kind="agent")
-    ])
+    m = _make_manifest(
+        [
+            ImportSpec(
+                source="src",
+                from_path="src/superclaude/agents/a1.md",
+                to=escape_to,
+                kind="agent",
+            )
+        ]
+    )
     with pytest.raises(PathEscape):
         render_to_staging(m, clones, staging)
 
@@ -144,10 +204,16 @@ def test_path_escape_in_to_field_rejected(tmp_path, escape_to):
 def test_unresolved_import_raises(tmp_path):
     root, clones = _make_clone(tmp_path)
     staging = tmp_path / "staging"
-    m = _make_manifest([
-        ImportSpec(source="src", from_path="src/superclaude/agents/missing.md",
-                   to="agents/missing.md", kind="agent")
-    ])
+    m = _make_manifest(
+        [
+            ImportSpec(
+                source="src",
+                from_path="src/superclaude/agents/missing.md",
+                to="agents/missing.md",
+                kind="agent",
+            )
+        ]
+    )
     with pytest.raises(UnresolvedImport):
         render_to_staging(m, clones, staging)
 
@@ -165,10 +231,18 @@ def test_deterministic_ordering(tmp_path):
     staging1 = tmp_path / "staging1"
     staging2 = tmp_path / "staging2"
     imports = [
-        ImportSpec(source="src", from_path="src/superclaude/skills/sc-foo-protocol/",
-                   to="skills/sc-foo-protocol/", kind="skill"),
-        ImportSpec(source="src", from_path="src/superclaude/agents/a1.md",
-                   to="agents/a1.md", kind="agent"),
+        ImportSpec(
+            source="src",
+            from_path="src/superclaude/skills/sc-foo-protocol/",
+            to="skills/sc-foo-protocol/",
+            kind="skill",
+        ),
+        ImportSpec(
+            source="src",
+            from_path="src/superclaude/agents/a1.md",
+            to="agents/a1.md",
+            kind="agent",
+        ),
     ]
     m = _make_manifest(imports)
     out1 = render_to_staging(m, clones, staging1)

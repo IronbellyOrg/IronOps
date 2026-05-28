@@ -181,9 +181,7 @@ def render_to_staging(
     # FR-8 path-safety pre-check on each import.to declaration
     for imp in manifest.imports:
         if Path(imp.to).is_absolute() or ".." in Path(imp.to).parts:
-            raise PathEscape(
-                f"import.to {imp.to!r} contains escape (absolute or '..')"
-            )
+            raise PathEscape(f"import.to {imp.to!r} contains escape (absolute or '..')")
 
     # NFR-1 — deterministic ordering by `to:`
     sorted_imports = sorted(manifest.imports, key=lambda i: i.to)

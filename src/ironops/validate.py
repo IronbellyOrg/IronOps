@@ -49,9 +49,7 @@ def _resolve_claude_binary() -> str:
     return found
 
 
-def run_validator(
-    staging_dir: Path, log_dir: Path | None = None
-) -> ValidatorResult:
+def run_validator(staging_dir: Path, log_dir: Path | None = None) -> ValidatorResult:
     """Invoke ``claude plugin validate <staging_dir>``.
 
     Returns a ValidatorResult capturing exit_code, stdout, stderr, and
