@@ -1,0 +1,20 @@
+schema_version: "999"
+
+sources:
+  ironclaude:
+    url: "file:///does/not/matter"
+
+imports:
+  - source: ironclaude
+    from: "src/superclaude/agents/devops-architect.md"
+    to: "agents/devops-architect.md"
+    kind: agent
+
+plugin:
+  name: "ironops-devops-test"
+  description: "bad schema test."
+
+marketplace:
+  name: "ironops"
+  owner:
+    name: "IronbellyOrg"

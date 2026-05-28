@@ -1,0 +1,20 @@
+schema_version: "1"
+
+sources:
+  ironclaude:
+    url: "file:///does/not/matter"
+
+imports:
+  - source: ironclaude
+    from: "src/superclaude/agents/devops-architect.md"
+    to: ".claude-plugin/plugin.json"
+    kind: agent
+
+plugin:
+  name: "ironops-devops-test"
+  description: "self overwrite test."
+
+marketplace:
+  name: "ironops"
+  owner:
+    name: "IronbellyOrg"

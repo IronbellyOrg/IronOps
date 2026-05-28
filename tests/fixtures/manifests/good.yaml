@@ -1,0 +1,32 @@
+schema_version: "1"
+
+sources:
+  ironclaude:
+    url: "file://{{IRONCLAUDE_SNAPSHOT_PATH}}"
+
+imports:
+  - source: ironclaude
+    from: "src/superclaude/agents/devops-architect.md"
+    to: "agents/devops-architect.md"
+    kind: agent
+
+  - source: ironclaude
+    from: "src/superclaude/skills/sc-troubleshoot-protocol/"
+    to: "skills/sc-troubleshoot-protocol/"
+    kind: skill
+
+  - source: ironclaude
+    from: "src/superclaude/commands/troubleshoot.md"
+    to: "commands/troubleshoot.md"
+    kind: command
+    requires:
+      - "skills/sc-troubleshoot-protocol/"
+
+plugin:
+  name: "ironops-devops-test"
+  description: "IronOps DevOps Claude Plugin — test build."
+
+marketplace:
+  name: "ironops"
+  owner:
+    name: "IronbellyOrg"

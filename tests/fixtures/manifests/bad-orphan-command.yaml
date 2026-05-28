@@ -1,0 +1,20 @@
+schema_version: "1"
+
+sources:
+  ironclaude:
+    url: "file://{{IRONCLAUDE_SNAPSHOT_PATH}}"
+
+imports:
+  - source: ironclaude
+    from: "src/superclaude/commands/troubleshoot.md"
+    to: "commands/troubleshoot.md"
+    kind: command
+
+plugin:
+  name: "ironops-devops-test"
+  description: "orphan command (skill not imported) test."
+
+marketplace:
+  name: "ironops"
+  owner:
+    name: "IronbellyOrg"

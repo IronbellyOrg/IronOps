@@ -1,0 +1,16 @@
+schema_version: "1"
+
+sources:
+  ironclaude:
+    url: "file:///does/not/matter"
+
+imports: []
+
+plugin:
+  name: "ironops-devops-test"
+  description: "empty imports test."
+
+marketplace:
+  name: "ironops"
+  owner:
+    name: "IronbellyOrg"
