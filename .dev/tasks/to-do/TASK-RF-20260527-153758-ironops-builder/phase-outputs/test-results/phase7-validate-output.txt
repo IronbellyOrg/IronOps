@@ -1,4 +1,10 @@
 [ironops] stage 0: preflight
 [ironops] stage 2: read manifest
 [ironops] stage 1: clone
-[UPSTREAM_CLONE_FAILED] git ls-remote failed for 'git@github.com:IronbellyOrg/IronClaude.git': git@github.com: Permission denied (publickey). fatal: Could not read from remote repository.  Please make sure you have the correct access rights and the repository exists.
+[ironops] stage 3: render
+[ironops] stage 4: write metadata
+[ironops] stage 5: validate
+[ironops] stage 6: publish
+[ironops] stage 6: skipped (dry_run)
+[ironops] stage 7: report
+plugin=ironops-devops-test files=10 sources=ironclaude@861e40ac publish=skipped(dry_run)
