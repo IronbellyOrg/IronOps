@@ -28,7 +28,7 @@ Every FR-1..FR-16, NFR-1..NFR-9, and AC-1..AC-10 has at least one test reference
 | NFR-6 | `publish.py` | `test_pipeline.py` | `test_pipeline_publish_message_format` | Commit message includes builder_version + source SHAs |
 | NFR-7 | `errors.py`, `pipeline.py`, `validate.py` | `test_errors.py`, `test_negative.py` | `test_exit_code_enum_values_distinct`, `test_failure_emits_one_line_stderr_summary` | 9 categorical codes (incl PUBLISH_FAILED), one-line stderr |
 | NFR-8 | `manifest.py` | `test_manifest.py` | `test_schema_version_negative[*]` | Only schema_version "1" accepted in v0.1 |
-| NFR-9 | `sources.py` | `test_sources.py` | `test_clean_working_tree_passes_when_empty`, `test_clean_working_tree_raises_when_dirty` | Post-build clean working tree invariant |
+| NFR-9 | `sources.py`, `pipeline.py` | `test_sources.py`, `test_pipeline.py` | `test_clean_working_tree_passes_when_empty`, `test_clean_working_tree_raises_when_dirty`, `test_pipeline_enforces_nfr9_clean_upstream`, `test_pipeline_aborts_with_internal_error_on_nfr9_violation` | Post-build clean working tree invariant — enforced at runtime by `_verify_upstream_clean` between Stage 6 and Stage 7 |
 | AC-1 | `cli.py` | `test_cli.py` | `test_cli_build_dry_run_happy_path` | CI invokes `ironops build` and gets exit 0 |
 | AC-2 | `pipeline.py` | `test_golden_output.py` | `test_golden_snapshot_matches` | Snapshot test against committed golden tree |
 | AC-3 | `pipeline.py` | `test_pipeline.py` | `test_pipeline_emits_all_four_generated_files` | Four generated files emitted (plugin.json/META.json/licenses/marketplace.json) |

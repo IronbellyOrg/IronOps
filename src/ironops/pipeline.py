@@ -3,10 +3,16 @@
 Stages 0..7: PREFLIGHT → CLONE → READ MANIFEST → RENDER → WRITE METADATA →
 VALIDATE → PUBLISH → REPORT.
 
-Stage 1 CLONE necessarily depends on the parsed manifest (since the clone
-loop iterates ``sources[*]``); the manifest is therefore parsed at the
-start of Stage 1 and Stage 2 acts as a re-validation pass for spec
-traceability. This is documented in the task checklist (Step 3.9).
+Execution-order note: Stage 2 (READ MANIFEST, FR-14/15/16) runs **before**
+Stage 1 (CLONE) because the clone loop iterates ``sources[*]`` and
+therefore needs the parsed manifest as input. ``load_manifest`` performs
+the FR-14 / FR-15 / FR-16 validations and raises ``ManifestInvalid`` on
+failure — there is no separate re-validation pass.
+
+NFR-9 enforcement: after Stage 6 PUBLISH and before Stage 7 REPORT,
+``_verify_upstream_clean`` asserts each upstream clone's working tree is
+clean. Violations indicate a builder bug and raise ``RuntimeError``,
+which the outer ``run_build`` translates to ``INTERNAL_ERROR``.
 
 All BuilderError subclasses raised by stage functions are caught at the
 top level and translated into a structured ``BuildResult`` so the public
@@ -95,9 +101,28 @@ def _stage_1_clone(ctx: BuildContext, manifest: Manifest) -> dict[str, ClonedSou
 
 
 def _stage_2_read_manifest(ctx: BuildContext) -> Manifest:
-    """Parse + validate the manifest (FR-1/14/15/16)."""
+    """Parse + validate the manifest (FR-1, FR-14, FR-15, FR-16).
+
+    Validation is performed inside ``load_manifest``: schema_version must
+    equal ``"1"`` (FR-14), ``imports`` must be non-empty (FR-15), and no
+    import may target a builder-owned path (FR-16). Any violation raises
+    ``ManifestInvalid``, which the outer ``run_build`` reports as
+    ``MANIFEST_INVALID``.
+    """
     _log(ctx, "stage 2: read manifest")
     return load_manifest(ctx.manifest_path)
+
+
+def _verify_upstream_clean(ctx: BuildContext, clones: dict[str, ClonedSource]) -> None:
+    """NFR-9 runtime enforcement — every upstream clone must be clean after build.
+
+    Calls ``sources._verify_clean_working_tree`` for each cloned source.
+    Raises ``RuntimeError`` on violation (builder bug: we wrote into an
+    upstream tree). Caught by ``run_build`` as INTERNAL_ERROR.
+    """
+    _log(ctx, "verify upstream clean (NFR-9)")
+    for clone in clones.values():
+        sources._verify_clean_working_tree(clone.path)
 
 
 def _stage_3_render(
@@ -192,12 +217,11 @@ def run_build(ctx: BuildContext) -> BuildResult:
     try:
         builder_version = _stage_0_preflight(ctx)
         _check_timing(ctx)
-        # Stage 1 needs the manifest to know what to clone — parse first
+        # Stage 2 runs before Stage 1: clone iteration needs the parsed
+        # manifest as input (see module docstring).
         manifest = _stage_2_read_manifest(ctx)
         clones = _stage_1_clone(ctx, manifest)
         _check_timing(ctx)
-        # Stage 2 re-validation pass for spec traceability
-        # (already done by load_manifest; this is a no-op re-assertion)
         rendered = _stage_3_render(ctx, manifest, clones)
         _check_timing(ctx)
         _stage_4_write_metadata(ctx, manifest, clones, rendered, builder_version)
@@ -206,6 +230,7 @@ def run_build(ctx: BuildContext) -> BuildResult:
         _check_timing(ctx)
         publish_result = _stage_6_publish(ctx, manifest, clones, builder_version)
         _check_timing(ctx)
+        _verify_upstream_clean(ctx, clones)
         summary = _stage_7_report(ctx, manifest, clones, rendered, publish_result)
         duration_s = time.monotonic() - ctx.start_time
         return BuildResult(

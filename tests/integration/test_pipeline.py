@@ -7,6 +7,7 @@ import re
 import subprocess
 from pathlib import Path
 
+from ironops import sources
 from ironops.errors import ExitCode
 from ironops.pipeline import BuildContext, run_build
 
@@ -211,3 +212,64 @@ def test_pipeline_deterministic_excluding_built_at(
             assert d1 == d2
         else:
             assert f1.read_bytes() == f2.read_bytes(), f"diff in {rel}"
+
+
+def test_pipeline_enforces_nfr9_clean_upstream(
+    tmp_path,
+    ironclaude_fixture_repo,
+    mock_git_clone,
+    mock_claude_validate,
+    patched_builder_version,
+    monkeypatch,
+):
+    """NFR-9 runtime invariant: pipeline calls _verify_clean_working_tree per clone."""
+    called_paths: list[Path] = []
+    real_verify = sources._verify_clean_working_tree
+
+    def spy(path: Path) -> None:
+        called_paths.append(Path(path))
+        real_verify(path)
+
+    monkeypatch.setattr(sources, "_verify_clean_working_tree", spy)
+
+    manifest_path = _make_manifest(tmp_path, ironclaude_fixture_repo)
+    ctx = BuildContext(
+        manifest_path=manifest_path,
+        staging_dir=tmp_path / "staging",
+        scratch_dir=tmp_path / "scratch",
+        dry_run=True,
+    )
+    result = run_build(ctx)
+    assert result.success, f"build failed: {result.summary}"
+    # Every cloned source must have been verified — and exactly once
+    expected = {clone.path for clone in result.clones.values()}
+    assert set(called_paths) == expected
+    assert len(called_paths) == len(expected)
+
+
+def test_pipeline_aborts_with_internal_error_on_nfr9_violation(
+    tmp_path,
+    ironclaude_fixture_repo,
+    mock_git_clone,
+    mock_claude_validate,
+    patched_builder_version,
+    monkeypatch,
+):
+    """If an upstream clone is dirty after build, pipeline fails INTERNAL_ERROR."""
+
+    def fake_dirty(path: Path) -> None:
+        raise RuntimeError(f"simulated NFR-9 violation at {path}")
+
+    monkeypatch.setattr(sources, "_verify_clean_working_tree", fake_dirty)
+
+    manifest_path = _make_manifest(tmp_path, ironclaude_fixture_repo)
+    ctx = BuildContext(
+        manifest_path=manifest_path,
+        staging_dir=tmp_path / "staging",
+        scratch_dir=tmp_path / "scratch",
+        dry_run=True,
+    )
+    result = run_build(ctx)
+    assert not result.success
+    assert result.exit_code == ExitCode.INTERNAL_ERROR
+    assert "NFR-9" in result.summary
