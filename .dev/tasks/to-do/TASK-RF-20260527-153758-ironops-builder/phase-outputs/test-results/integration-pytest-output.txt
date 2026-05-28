@@ -1,0 +1,36 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-9.0.3, pluggy-1.6.0 -- /config/workspace/IronOps/.claude/worktrees/agent-aa1bd635dd1ba3d99/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /config/workspace/IronOps/.claude/worktrees/agent-aa1bd635dd1ba3d99
+configfile: pyproject.toml
+plugins: cov-7.1.0
+collecting ... collected 26 items
+
+tests/integration/test_atomicity.py::test_render_failure_leaves_marketplace_unchanged PASSED [  3%]
+tests/integration/test_atomicity.py::test_validate_failure_leaves_marketplace_unchanged PASSED [  7%]
+tests/integration/test_atomicity.py::test_metadata_failure_leaves_marketplace_unchanged PASSED [ 11%]
+tests/integration/test_atomicity.py::test_clone_failure_leaves_marketplace_unchanged PASSED [ 15%]
+tests/integration/test_atomicity.py::test_no_partial_marketplace_write_on_failure PASSED [ 19%]
+tests/integration/test_golden_output.py::test_golden_snapshot_matches SKIPPED) [ 23%]
+tests/integration/test_golden_output.py::test_golden_file_count_matches_summary SKIPPED) [ 26%]
+tests/integration/test_negative.py::test_bad_manifest_fails_with_categorical_code[bad-schema] PASSED [ 30%]
+tests/integration/test_negative.py::test_bad_manifest_fails_with_categorical_code[bad-empty-imports] PASSED [ 34%]
+tests/integration/test_negative.py::test_bad_manifest_fails_with_categorical_code[bad-self-overwrite] PASSED [ 38%]
+tests/integration/test_negative.py::test_bad_manifest_fails_with_categorical_code[bad-path-escape] PASSED [ 42%]
+tests/integration/test_negative.py::test_bad_manifest_fails_with_categorical_code[bad-hook-kind] PASSED [ 46%]
+tests/integration/test_negative.py::test_orphan_command_fails_with_co_import_missing PASSED [ 50%]
+tests/integration/test_negative.py::test_failure_emits_one_line_stderr_summary PASSED [ 53%]
+tests/integration/test_pipeline.py::test_pipeline_dry_run_happy_path PASSED [ 57%]
+tests/integration/test_pipeline.py::test_pipeline_emits_all_four_generated_files PASSED [ 61%]
+tests/integration/test_pipeline.py::test_pipeline_validator_failure_aborts_publish PASSED [ 65%]
+tests/integration/test_pipeline.py::test_pipeline_publish_message_format PASSED [ 69%]
+tests/integration/test_pipeline.py::test_pipeline_stage_timing_recorded PASSED [ 73%]
+tests/integration/test_pipeline.py::test_pipeline_deterministic_excluding_built_at PASSED [ 76%]
+tests/cli/test_cli.py::test_cli_help_lists_all_commands PASSED           [ 80%]
+tests/cli/test_cli.py::test_cli_version_prints_version_and_sha PASSED    [ 84%]
+tests/cli/test_cli.py::test_cli_build_help_exposes_flags PASSED          [ 88%]
+tests/cli/test_cli.py::test_cli_build_bad_manifest_exits_with_categorical_code PASSED [ 92%]
+tests/cli/test_cli.py::test_cli_build_dry_run_happy_path PASSED          [ 96%]
+tests/cli/test_cli.py::test_cli_no_interactive_input_required PASSED     [100%]
+
+======================== 24 passed, 2 skipped in 0.22s =========================

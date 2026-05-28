@@ -143,27 +143,26 @@ def enforce_co_imports(rendered: list[RenderedFile]) -> None:
 
 
 def enforce_path_safety(file_path: Path, plugin_root: Path) -> None:
-    """FR-8 — reject absolute paths and ``..`` segments in file content.
+    """FR-8 — verify the emitted file resolves inside the plugin root.
 
-    Allows ``${CLAUDE_PLUGIN_ROOT}/...`` references. Raises PathEscape on
-    a hit. Operates on the file's text content; binary files are skipped.
+    The primary FR-8 enforcement runs in ``render_to_staging`` against each
+    import's ``to:`` field (rejecting absolute paths and ``..`` segments
+    before any copy). This function provides a defensive post-copy check:
+    every rendered file's resolved path must be a descendant of the staging
+    directory. File contents are NOT scanned — documentation files
+    legitimately reference real filesystem paths.
     """
     try:
-        text = file_path.read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError):
-        # Binary or unreadable — path safety only applies to textual content
-        return
-    # Replace allowed plugin-root references first
-    text_check = _PLUGIN_ROOT_RE.sub("", text)
-    for abs_re in _ABS_PATH_RES:
-        if abs_re.search(text_check):
-            raise PathEscape(
-                f"file {file_path} contains absolute path reference (FR-8 violation)"
-            )
-    if _DOTDOT_RE.search(text_check):
+        resolved = file_path.resolve()
+        root = plugin_root.resolve()
+    except OSError as exc:
+        raise PathEscape(f"could not resolve {file_path}: {exc}") from exc
+    try:
+        resolved.relative_to(root)
+    except ValueError as exc:
         raise PathEscape(
-            f"file {file_path} contains '..' path segment (FR-8 violation)"
-        )
+            f"file {file_path} resolves outside plugin root {plugin_root} (FR-8 violation)"
+        ) from exc
 
 
 def render_to_staging(

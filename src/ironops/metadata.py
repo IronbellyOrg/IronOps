@@ -109,6 +109,16 @@ def write_meta_json(
     sources_block = []
     for source_id, source_spec in manifest.sources.items():
         clone = clones.get(source_id)
+
+        def _from_rel(rf: RenderedFile) -> str:
+            """Render `from:` as a path relative to the clone root for determinism (NFR-1)."""
+            if clone is not None:
+                try:
+                    return str(rf.from_path.relative_to(clone.path))
+                except ValueError:
+                    pass
+            return str(rf.from_path)
+
         sources_block.append(
             {
                 "id": source_id,
@@ -117,7 +127,7 @@ def write_meta_json(
                 "sha": clone.resolved_sha if clone else None,
                 "imports": [
                     {
-                        "from": str(rf.from_path),
+                        "from": _from_rel(rf),
                         "to": str(rf.to_path.relative_to(staging_dir)),
                         "kind": rf.kind,
                     }

@@ -76,11 +76,14 @@ def _check_timing(ctx: BuildContext) -> None:
 
 
 def _stage_0_preflight(ctx: BuildContext) -> str:
-    """Verify python/git/rsync, resolve builder version (also enforces FR-12)."""
+    """Verify required tools, resolve builder version (also enforces FR-12).
+
+    Only `git` is strictly required for preflight. `rsync` is checked at
+    publish time (Stage 6) since stages 0–5 do not require it.
+    """
     _log(ctx, "stage 0: preflight")
-    for tool in ("git", "rsync"):
-        if not shutil.which(tool):
-            raise RuntimeError(f"required tool {tool!r} not found in PATH")
+    if not shutil.which("git"):
+        raise RuntimeError("required tool 'git' not found in PATH")
     # FR-12 dirty-tree enforcement runs here via _resolve_builder_version
     builder_version = metadata._resolve_builder_version()
     ctx.builder_version = builder_version
