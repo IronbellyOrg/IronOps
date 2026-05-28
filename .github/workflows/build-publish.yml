@@ -1,0 +1,72 @@
+name: Build and Publish
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * *"  # daily 06:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: ironops-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout IronOps
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install IronOps
+        run: uv pip install --system -e .
+
+      - name: Install Claude CLI
+        # Resolve to the current package name at runtime; if this fails, log the blocker
+        # before merging the workflow. As of 2026-05 the package is @anthropic-ai/claude-code.
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Configure git
+        run: |
+          git config --global user.email "ironops-bot@ironbelly.local"
+          git config --global user.name "IronOps Bot"
+
+      - name: Checkout marketplace repo
+        uses: actions/checkout@v4
+        with:
+          repository: IronbellyOrg/ironops-marketplace
+          token: ${{ secrets.IRONOPS_MARKETPLACE_TOKEN }}
+          path: marketplace-clone
+
+      - name: Build and publish
+        run: ironops build --manifest manifest.yaml --staging staging --marketplace marketplace-clone
+
+      - name: Upload validate.log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ironops-validate-log
+          path: staging/validate.log
+          retention-days: 30
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ironops-build-log
+          path: staging/build.log
+          retention-days: 30
+          if-no-files-found: ignore

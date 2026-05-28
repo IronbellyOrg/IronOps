@@ -1,0 +1,94 @@
+# IronOps v0.1 production manifest
+# Aggregates a curated DevOps subset from IronClaude into the ironops-devops plugin.
+# Default branch resolved at build time per FR-2 (no hardcoded main/master).
+
+schema_version: "1"
+
+sources:
+  ironclaude:
+    url: "git@github.com:IronbellyOrg/IronClaude.git"
+
+imports:
+  # --- Agents (11 per §13 shortlist) ---
+  - { source: ironclaude, from: "src/superclaude/agents/devops-architect.md", to: "agents/devops-architect.md", kind: agent }
+  - { source: ironclaude, from: "src/superclaude/agents/system-architect.md", to: "agents/system-architect.md", kind: agent }
+  - { source: ironclaude, from: "src/superclaude/agents/security-engineer.md", to: "agents/security-engineer.md", kind: agent }
+  - { source: ironclaude, from: "src/superclaude/agents/root-cause-analyst.md", to: "agents/root-cause-analyst.md", kind: agent }
+  - { source: ironclaude, from: "src/superclaude/agents/performance-engineer.md", to: "agents/performance-engineer.md", kind: agent }
+  - { source: ironclaude, from: "src/superclaude/agents/backend-architect.md", to: "agents/backend-architect.md", kind: agent }
+  - { source: ironclaude, from: "src/superclaude/agents/quality-engineer.md", to: "agents/quality-engineer.md", kind: agent }
+  - { source: ironclaude, from: "src/superclaude/agents/pm-agent.md", to: "agents/pm-agent.md", kind: agent }
+  - { source: ironclaude, from: "src/superclaude/agents/self-review.md", to: "agents/self-review.md", kind: agent }
+  - { source: ironclaude, from: "src/superclaude/agents/technical-writer.md", to: "agents/technical-writer.md", kind: agent }
+  - { source: ironclaude, from: "src/superclaude/agents/requirements-analyst.md", to: "agents/requirements-analyst.md", kind: agent }
+
+  # --- Skills (10 directories) ---
+  # NOTE: §13 says "~8 skills" but FR-4 co-import enforcement requires sc-cleanup-audit-protocol
+  # and sc-task-protocol (cited by the cleanup-audit and task commands respectively),
+  # bringing the count to 10. The `prd` skill is commented out per OQ-6 deferral to v0.2.
+  - { source: ironclaude, from: "src/superclaude/skills/sc-troubleshoot-protocol/", to: "skills/sc-troubleshoot-protocol/", kind: skill }
+  - { source: ironclaude, from: "src/superclaude/skills/sc-crash-recovery/", to: "skills/sc-crash-recovery/", kind: skill }
+  - { source: ironclaude, from: "src/superclaude/skills/sc-cli-portify-protocol/", to: "skills/sc-cli-portify-protocol/", kind: skill }
+  - { source: ironclaude, from: "src/superclaude/skills/sc-cleanup-audit-protocol/", to: "skills/sc-cleanup-audit-protocol/", kind: skill }
+  - { source: ironclaude, from: "src/superclaude/skills/sc-task-protocol/", to: "skills/sc-task-protocol/", kind: skill }
+  - { source: ironclaude, from: "src/superclaude/skills/task/", to: "skills/task/", kind: skill }
+  - { source: ironclaude, from: "src/superclaude/skills/task-builder/", to: "skills/task-builder/", kind: skill }
+  - { source: ironclaude, from: "src/superclaude/skills/tech-research/", to: "skills/tech-research/", kind: skill }
+  - { source: ironclaude, from: "src/superclaude/skills/tdd/", to: "skills/tdd/", kind: skill }
+  - { source: ironclaude, from: "src/superclaude/skills/tech-reference/", to: "skills/tech-reference/", kind: skill }
+  # - { source: ironclaude, from: "src/superclaude/skills/prd/", to: "skills/prd/", kind: skill }   # OQ-6 deferred to v0.2
+
+  # --- Commands (7) with FR-4 co-import requires fields ---
+  - source: ironclaude
+    from: "src/superclaude/commands/troubleshoot.md"
+    to: "commands/troubleshoot.md"
+    kind: command
+    requires:
+      - "skills/sc-troubleshoot-protocol/"
+
+  - source: ironclaude
+    from: "src/superclaude/commands/git.md"
+    to: "commands/git.md"
+    kind: command
+
+  - source: ironclaude
+    from: "src/superclaude/commands/cli-portify.md"
+    to: "commands/cli-portify.md"
+    kind: command
+    requires:
+      - "skills/sc-cli-portify-protocol/"
+
+  - source: ironclaude
+    from: "src/superclaude/commands/cleanup-audit.md"
+    to: "commands/cleanup-audit.md"
+    kind: command
+    requires:
+      - "skills/sc-cleanup-audit-protocol/"
+
+  - source: ironclaude
+    from: "src/superclaude/commands/task.md"
+    to: "commands/task.md"
+    kind: command
+    requires:
+      - "skills/sc-task-protocol/"
+
+  - source: ironclaude
+    from: "src/superclaude/commands/research.md"
+    to: "commands/research.md"
+    kind: command
+    requires:
+      - "skills/tech-research/"
+
+  - source: ironclaude
+    from: "src/superclaude/commands/workflow.md"
+    to: "commands/workflow.md"
+    kind: command
+
+plugin:
+  name: "ironops-devops"
+  description: "DevOps-focused curated plugin for Claude Code, aggregated build-time from IronClaude."
+
+marketplace:
+  name: "ironops"
+  owner:
+    name: "IronbellyOrg"
