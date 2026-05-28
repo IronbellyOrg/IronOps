@@ -1,2 +1,4 @@
 [ironops] stage 0: preflight
-[BUILDER_DIRTY_TREE] IronOps working tree is dirty (FR-12) — commit or stash before building
+[ironops] stage 2: read manifest
+[ironops] stage 1: clone
+[UPSTREAM_CLONE_FAILED] git ls-remote failed for 'git@github.com:IronbellyOrg/IronClaude.git': git@github.com: Permission denied (publickey). fatal: Could not read from remote repository.  Please make sure you have the correct access rights and the repository exists.
