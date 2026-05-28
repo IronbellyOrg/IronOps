@@ -1,0 +1,54 @@
+contract_version: "1.0"
+status: partial
+mode: pre
+tier_reached: 2
+report_path: /config/workspace/IronOps/.dev/reflect/uc1-ironops-builder-prerun/REPORT.md
+audit_log_path: /config/workspace/IronOps/.dev/reflect/uc1-ironops-builder-prerun/audit.log
+confidence_calibrated: 0.83
+escalation_rule_matched: 6
+coverage_pct: 0.94
+coverage_undefined: false
+unmapped_requirements: []
+best_practice_grade: 4
+input_sha256:
+  tasklist: 09c7ce99bf2c4d8ca819f9a2149dc623d21c992368130bc7275c55d53722f8d1
+  spec: 4f1bb6de73e8620f5c95b0077e05f87bdffbdb02032d88c0a86ff52273e7cb12
+input_tree_sha256: de276173b220c0f350bd1950b87c113e2a55e2fadd97554ce8f54a7efd3f0e1b
+input_tree_file_count: 2
+input_tree_snapshot_path: /config/workspace/IronOps/.dev/reflect/uc1-ironops-builder-prerun/artifacts/input-snapshot.yaml
+input_drift_detected: false
+citations_total: 34
+citations_revalidated: 32
+citations_dropped: 0
+citations_inferred: 2
+citation_budget_policy: full_reread
+evidence_validator_ran: true
+reviewer_cards:
+  - /config/workspace/IronOps/.dev/reflect/uc1-ironops-builder-prerun/reviewer-cards/t1-card.md
+  - /config/workspace/IronOps/.dev/reflect/uc1-ironops-builder-prerun/reviewer-cards/t2-reviewer-a-card.md
+  - /config/workspace/IronOps/.dev/reflect/uc1-ironops-builder-prerun/reviewer-cards/t2-reviewer-b-card.md
+adversarial_artifacts_dir: null
+adversarial_convergence_score: null
+adversarial_unavailable: true
+merge_method: orchestrator-inline-merge
+t2_model_class_diversity: degraded
+t2_vendor_diversity: single
+t2_effective_diversity: model-only
+calibrator_diversity: full
+remediation_offered: false
+remediation_accepted: null
+task_file_path: null
+cannot_validate_without_user_input: false
+regression_present: false
+unauthorized_deviation_present: false
+blocked_by_low_confidence: false
+spec_is_wrong: false
+user_decision_required: true
+needs_human_decision: true
+promotion_action: not-applicable
+promotion_adapter: null
+findings_summary:
+  high_severity: 7
+  medium_severity: 15
+  low_severity: 6
+  inferred: 2

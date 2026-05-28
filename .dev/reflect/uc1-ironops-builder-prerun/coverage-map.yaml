@@ -1,0 +1,620 @@
+# UC-1 Pre-Execution Coverage Map: IronOps v0.1 Spec ↔ Builder Tasklist
+# Status: Complete
+# Generated: 2026-05-27
+# Spec: /config/workspace/IronOps/.dev/releases/1.0/0.1/SPEC_IRONOPS_DEVOPS_PLUGIN.md
+# Tasklist: /config/workspace/IronOps/.dev/tasks/to-do/TASK-RF-20260527-153758-ironops-builder/TASK-RF-20260527-153758-ironops-builder.md
+# Disposition (authoritative amendments): /config/workspace/IronOps/.dev/tasks/to-do/TASK-RF-20260527-153758-ironops-builder/research/05-gap-fill-disposition.md
+#
+# Note: Phase 2 Step 2.1 amends NFR-7 (adds PUBLISH_FAILED as 9th categorical code). Phase 2 Step 2.2
+# amends §2.1 + §17 (builder location). These items are coverage-mapped to the spec AMENDMENTS, not the
+# pre-amendment text. NFR-7 post-amendment has 9 codes; spec text shows 8.
+
+coverage_map:
+
+  # ============================================================
+  # FUNCTIONAL REQUIREMENTS (FR-1 through FR-16)
+  # ============================================================
+  fr_coverage:
+    - id: FR-1
+      spec_section: §3
+      severity: CRITICAL
+      title: "Manifest-driven aggregation"
+      task_items: ["Step 3.3 (manifest.py)", "Step 3.5 (render.py copy per manifest)", "Step 7.3 (production manifest.yaml)"]
+      verification_items: ["Step 5.2 (test_manifest happy path)", "Step 5.4 (test_render fanout)", "Step 6.1 (test_pipeline)"]
+      status: covered
+
+    - id: FR-2
+      spec_section: §3
+      severity: CRITICAL
+      title: "Always-latest mainline at build time (programmatic default-branch resolution)"
+      task_items: ["Step 3.4 (sources.py - _resolve_default_branch via ls-remote --symref)"]
+      verification_items: ["Step 5.3 (test_sources - no hardcoded main/master; ls-remote returns refs/heads/develop)"]
+      status: covered
+
+    - id: FR-3
+      spec_section: §3
+      severity: CRITICAL
+      title: "Read-only upstream consumption"
+      task_items: ["Step 3.4 (sources.py - _verify_clean_working_tree)", "Step 3.5 (render.py - reads only from clone, writes only to staging)"]
+      verification_items: ["Step 5.3 (test_sources - post-build clean working tree)", "Step 5.4 (test_render - byte-identical)"]
+      status: covered
+
+    - id: FR-4
+      spec_section: §3
+      severity: CRITICAL
+      title: "Co-import enforcement"
+      task_items: ["Step 3.5 (render.py - enforce_co_imports, _scan_command_for_skill_refs)"]
+      verification_items: ["Step 5.4 (test_render - co-import without skill fails, names both files)", "Step 6.3 (test_negative - bad-orphan-command → CO_IMPORT_MISSING exit 12)"]
+      status: covered
+
+    - id: FR-5
+      spec_section: §3
+      severity: CRITICAL
+      title: "Validation gate (claude plugin validate)"
+      task_items: ["Step 3.7 (validate.py - run_validator)", "Step 3.9 (pipeline.py - Stage 5 VALIDATE before Stage 6 PUBLISH)"]
+      verification_items: ["Step 6.1 (test_pipeline - validator failure aborts publish)", "Step 6.3 (test_negative - invalid-plugin-json → VALIDATE_FAILED exit 13)", "Step 7.9 (smoke claude plugin validate)"]
+      status: covered
+
+    - id: FR-6
+      spec_section: §3
+      severity: CRITICAL
+      title: "Provenance via META.json"
+      task_items: ["Step 3.6 (metadata.py - write_meta_json)"]
+      verification_items: ["Step 5.5 (test_metadata - schema_version, built_at ISO-8601, builder_version 40-char hex, sources/imports fanout)"]
+      status: covered
+
+    - id: FR-7
+      spec_section: §3
+      severity: MAJOR
+      title: "Plugin namespace (no sc: rewriting; byte-identical copy)"
+      task_items: ["Step 3.5 (render.py - shutil.copy2; no content rewriting)"]
+      verification_items: ["Step 5.4 (test_render - byte-identical via read_bytes hash)"]
+      status: covered
+
+    - id: FR-8
+      spec_section: §3
+      severity: CRITICAL
+      title: "Path safety"
+      task_items: ["Step 3.5 (render.py - enforce_path_safety with PATH_ESCAPE_PATTERNS, allow ${CLAUDE_PLUGIN_ROOT})"]
+      verification_items: ["Step 5.4 (test_render - path-escape parametrized over 4 variants, ${CLAUDE_PLUGIN_ROOT} allowed)", "Step 6.3 (test_negative - bad-path-escape → PATH_ESCAPE exit 14)"]
+      status: covered
+
+    - id: FR-9
+      spec_section: §3
+      severity: MAJOR
+      title: "Atomic publish (staging + rsync only after validate)"
+      task_items: ["Step 3.8 (publish.py - pre-build HEAD capture, verify_marketplace_unchanged_on_failure)", "Step 3.9 (pipeline.py - marketplace_repo never touched until Stage 5 succeeds)"]
+      verification_items: ["Step 6.1 (test_pipeline - validator failure aborts publish)", "Step 6.2 (test_atomicity - 5 stage-failure tests, marketplace HEAD unchanged)"]
+      status: covered
+
+    - id: FR-10
+      spec_section: §3
+      severity: MAJOR
+      title: "Marketplace manifest generation"
+      task_items: ["Step 3.6 (metadata.py - write_marketplace_json)"]
+      verification_items: ["Step 5.5 (test_metadata - exactly one plugin entry, source ./plugins/ironops-devops)"]
+      status: covered
+
+    - id: FR-11
+      spec_section: §3
+      severity: MAJOR
+      title: "Third-party license attribution"
+      task_items: ["Step 3.6 (metadata.py - write_third_party_licenses)"]
+      verification_items: ["Step 5.5 (test_metadata - per-file/per-directory mapping, upstream LICENSE reference)"]
+      status: covered
+
+    - id: FR-12
+      spec_section: §3
+      severity: MAJOR
+      title: "Deterministic, headless operation"
+      task_items: ["Step 3.6 (metadata.py - _resolve_builder_version raises BuilderDirtyTree)", "Step 3.10 (cli.py - NO --allow-dirty flag, NO click.prompt)"]
+      verification_items: ["Step 5.5 (test_metadata - dirty tree raises BuilderDirtyTree)", "Step 6.1 (test_pipeline - deterministic two runs)", "Step 6.5 (test_cli - no --allow-dirty exposed, input='' assertion)"]
+      status: covered
+
+    - id: FR-13
+      spec_section: §3
+      severity: MINOR
+      title: "Versioning strategy v0.1 (plugin.json omits version)"
+      task_items: ["Step 3.6 (metadata.py - write_plugin_json with only name+description)"]
+      verification_items: ["Step 5.5 (test_metadata - plugin_json has no version key, has required keys)"]
+      status: covered
+
+    - id: FR-14
+      spec_section: §3
+      severity: MAJOR
+      title: "Manifest schema versioning (schema_version: '1')"
+      task_items: ["Step 3.3 (manifest.py - validate_schema_version, FR-14 rejects 999/1.0/1.x/int 1)"]
+      verification_items: ["Step 5.2 (test_manifest - parametrized over [999, 1.0, 1.x, 1])", "Step 6.3 (test_negative - bad-schema → MANIFEST_INVALID exit 10)"]
+      status: covered
+
+    - id: FR-15
+      spec_section: §3
+      severity: MAJOR
+      title: "Reject empty manifests"
+      task_items: ["Step 3.3 (manifest.py - validate_imports_non_empty)"]
+      verification_items: ["Step 5.2 (test_manifest - empty imports rejected)", "Step 6.3 (test_negative - bad-empty-imports → MANIFEST_INVALID exit 10)"]
+      status: covered
+
+    - id: FR-16
+      spec_section: §3
+      severity: MAJOR
+      title: "Block self-overwrite via manifest"
+      task_items: ["Step 3.3 (manifest.py - validate_no_self_overwrite, RESERVED_GENERATED_PATHS)"]
+      verification_items: ["Step 5.2 (test_manifest - plugin.json/META.json/LICENSES rejected)", "Step 6.3 (test_negative - bad-self-overwrite → SELF_OVERWRITE exit 16)"]
+      status: covered
+
+  # ============================================================
+  # NON-FUNCTIONAL REQUIREMENTS (NFR-1 through NFR-9)
+  # ============================================================
+  nfr_coverage:
+    - id: NFR-1
+      spec_section: §4
+      title: "Reproducibility (byte-identical except built_at)"
+      task_items: ["Step 3.5 (render.py - sort imports by `to` path for stable ordering)"]
+      verification_items: ["Step 5.4 (test_render - deterministic ordering)", "Step 6.1 (test_pipeline - two runs byte-identical except META.json.built_at)"]
+      status: covered
+
+    - id: NFR-2
+      spec_section: §4
+      title: "Build wall-clock budget (<60s soft, 300s hard)"
+      task_items: ["Step 3.9 (pipeline.py - timing instrumentation, 60s soft warn, 300s hard fail)"]
+      verification_items: []
+      status: partial
+      gap: "No explicit task item runs a timing-budget test; pipeline.py has instrumentation but no test asserts NFR-2 wall-clock threshold."
+
+    - id: NFR-3
+      spec_section: §4
+      title: "Plugin context cost budget (<500 tokens always-on, ceiling 1500)"
+      task_items: ["Step 7.5 (MANIFEST_AUTHORING.md - NFR-3 enforcement section per disposition D8: docs-based not build-time gate)"]
+      verification_items: []
+      status: covered
+      note: "Per disposition D8: NFR-3 enforced via docs guidance + manual `claude plugin details` post-install verification, NOT a build-time gate."
+
+    - id: NFR-4
+      spec_section: §4
+      title: "Plugin validity (zero errors, zero warnings)"
+      task_items: ["Step 3.7 (validate.py - strict warnings interpretation, raises ValidateFailed on exit_code != 0 OR warning patterns in stdout/stderr)"]
+      verification_items: ["Step 6.1 (test_pipeline - validator gate)", "Step 7.9 (smoke claude plugin validate)"]
+      status: covered
+
+    - id: NFR-5
+      spec_section: §4
+      title: "Security: no executable code from upstream invoked at build time"
+      task_items: ["Step 3.5 (render.py - copy files only, no exec)"]
+      verification_items: []
+      status: partial
+      gap: "No test explicitly asserts the builder never `exec`s upstream-supplied shell scripts. Implicit via FR-7 byte-identical copy and absence of subprocess invocations on upstream files, but no NFR-5-specific test."
+
+    - id: NFR-6
+      spec_section: §4
+      title: "Auditability (META.json sources[].sha matches upstream)"
+      task_items: ["Step 3.4 (sources.py - _resolve_sha records 40-char SHA)", "Step 3.6 (metadata.py - META.json sources fanout)"]
+      verification_items: ["Step 5.5 (test_metadata - builder_version 40-char hex regex)", "Step 5.3 (test_sources - resolved_sha for default branch/explicit ref/explicit sha)"]
+      status: covered
+
+    - id: NFR-7
+      spec_section: §4 (AMENDED Phase 2 Step 2.1)
+      title: "Failure transparency (9 categorical codes including PUBLISH_FAILED per disposition D3)"
+      task_items: ["Step 2.1 (AMEND SPEC to add PUBLISH_FAILED)", "Step 3.2 (errors.py - ExitCode enum with 9 codes + INTERNAL_ERROR=99, format_failure single-line)", "Step 3.7 (validate.py - log_dir writes validate.log)"]
+      verification_items: ["Step 5.1 (test_errors - parametrized over 9 codes incl PUBLISH_FAILED)", "Step 6.3 (test_negative - 10 tests verify exit codes + log + stderr summary)"]
+      status: covered
+      note: "Pre-amendment NFR-7 has 8 codes; post-amendment per D3 has 9 (adds PUBLISH_FAILED for rsync/git push failures)."
+
+    - id: NFR-8
+      spec_section: §4
+      title: "Backwards-compat for manifest schema (schema_version '1' through all v0.x)"
+      task_items: ["Step 3.3 (manifest.py - schema_version validated)", "Step 7.7 (CHANGELOG.md - tracks schema_version bumps)"]
+      verification_items: []
+      status: partial
+      gap: "No automated test asserts NFR-8 cross-version compatibility (would require future versions to exist). Tracked via CHANGELOG discipline only."
+
+    - id: NFR-9
+      spec_section: §4
+      title: "Read-only upstream working trees (clean after every build)"
+      task_items: ["Step 3.4 (sources.py - _verify_clean_working_tree via git status --porcelain)"]
+      verification_items: ["Step 5.3 (test_sources - post-build clean working tree assertion)"]
+      status: covered
+
+  # ============================================================
+  # ACCEPTANCE CRITERIA (AC-1 through AC-10)
+  # ============================================================
+  ac_coverage:
+    - id: AC-1
+      spec_section: §12
+      title: "Builder runs to green on clean Linux x86_64 CI runner"
+      task_items: ["Step 7.1 (.github/workflows/test.yml)", "Step 7.2 (.github/workflows/build-publish.yml)"]
+      verification_items: ["Step 6.5 (test_cli - build dry-run exits zero)", "Step 9.2 (final pytest -v full suite)"]
+      status: covered
+
+    - id: AC-2
+      spec_section: §12
+      title: "Rendered plugin tree contains all v0.1 shortlist (§13) components"
+      task_items: ["Step 7.3 (manifest.yaml lists 11 agents + 10 skills + 7 commands)"]
+      verification_items: ["Step 6.4 (test_golden_output - 5 tests: snapshot match, file count, 11 agents, ~8 skills, 7 commands)"]
+      status: covered
+      note: "Tasklist lists 10 skills (not the spec's '~8') — disposition adds sc-cleanup-audit-protocol + sc-task-protocol to satisfy FR-4 co-imports. test_golden_output Step 6.4 cites '~8 skills' in test description but matches the actual manifest count."
+
+    - id: AC-3
+      spec_section: §12
+      title: "claude plugin validate passes on staging tree"
+      task_items: ["Step 3.7 (validate.py)", "Step 7.9 (smoke validate)"]
+      verification_items: ["Step 6.1 (test_pipeline - validator gate)", "Step 9.2 (claude plugin validate ./staging-output)"]
+      status: covered
+
+    - id: AC-4
+      spec_section: §12
+      title: "META.json validates against §6 schema; non-empty resolved_sha per file"
+      task_items: ["Step 3.6 (metadata.py - write_meta_json per §6 schema)"]
+      verification_items: ["Step 5.5 (test_metadata - schema validation, builder_version 40-char hex, sources/imports enumerates every file)"]
+      status: covered
+
+    - id: AC-5
+      spec_section: §12
+      title: "THIRD_PARTY_LICENSES.md present, references upstream IronClaude license"
+      task_items: ["Step 3.6 (metadata.py - write_third_party_licenses)"]
+      verification_items: ["Step 5.5 (test_metadata - upstream LICENSE reference, per-file/per-dir mapping)"]
+      status: covered
+
+    - id: AC-6
+      spec_section: §12
+      title: "Marketplace repo receives one new commit per build; commit msg contains builder_version + source SHA"
+      task_items: ["Step 3.8 (publish.py - _build_commit_message: 'ironops-devops: built from <builder_version> | sources: ironclaude@<resolved_sha>')"]
+      verification_items: ["Step 6.1 (test_pipeline - commit message format AC-6 assertion)"]
+      status: covered
+
+    - id: AC-7
+      spec_section: §12
+      title: "Fresh project: marketplace add + install + /ironops-devops:troubleshoot callable"
+      task_items: ["Step 7.6 (MARKETPLACE_BOOTSTRAP.md)", "Step 7.8 (README.md - install/usage)"]
+      verification_items: []
+      status: partial
+      gap: "AC-7 requires manual smoke test ('Manual smoke test' per spec). No automated test or task item runs the end-to-end install-and-invoke flow. Documented but not automated."
+
+    - id: AC-8
+      spec_section: §12
+      title: "All 16 FR-N have CI test or assertion (test inventory mapping)"
+      task_items: ["Step 6.6 (tests/test_inventory.md - FR-to-test traceability matrix)"]
+      verification_items: ["Step 8.1 (QA input report cross-checks test inventory)"]
+      status: covered
+
+    - id: AC-9
+      spec_section: §12
+      title: "All Guard Boundary Table rows exercised in CI test matrix"
+      task_items: []
+      verification_items: ["Step 5.2 (test_manifest covers schema_version + imports + self-overwrite guards)", "Step 5.3 (test_sources covers upstream clone guard)", "Step 5.4 (test_render covers co-import + path-safety guards)", "Step 5.5 (test_metadata covers BuilderDirtyTree guard)", "Step 6.3 (test_negative covers VALIDATE_FAILED)"]
+      status: partial
+      gap: "No single task item produces the Guard Boundary coverage report that AC-9 requires ('Coverage report in build artifacts'). Individual guards are tested but no aggregated guard-to-test traceability matrix exists. Step 6.6 (test_inventory.md) covers FR/NFR/AC but not the spec §9 guard rows explicitly."
+
+    - id: AC-10
+      spec_section: §12
+      title: "Builder fails fast on every malformed-manifest fixture"
+      task_items: ["Step 4.7-4.12 (6 bad-*.yaml manifest fixtures)"]
+      verification_items: ["Step 6.3 (test_negative - 10 tests one per failure category)"]
+      status: covered
+
+  # ============================================================
+  # MANIFEST SCHEMA COVERAGE (§5)
+  # ============================================================
+  manifest_schema_coverage:
+    - field: "schema_version"
+      task_items: ["Step 3.3 (validate_schema_version)", "Step 4.6 (good.yaml fixture)"]
+      verification_items: ["Step 5.2 (test_manifest)"]
+      status: covered
+
+    - field: "sources (non-empty map)"
+      task_items: ["Step 3.3 (manifest.py - SourceSpec dataclass)", "Step 4.6 (good.yaml)"]
+      verification_items: ["Step 5.2 (test_manifest - unknown source id rejected)"]
+      status: covered
+
+    - field: "imports (non-empty array)"
+      task_items: ["Step 3.3 (manifest.py - ImportSpec, validate_imports_non_empty)", "Step 4.6 (good.yaml)"]
+      verification_items: ["Step 5.2 (test_manifest)"]
+      status: covered
+
+    - field: "import.source (must reference sources key)"
+      task_items: ["Step 3.3 (manifest.py - cross-reference validation)"]
+      verification_items: ["Step 5.2 (test_manifest - unknown source id rejected)"]
+      status: covered
+
+    - field: "import.from (path inside upstream)"
+      task_items: ["Step 3.3 (ImportSpec.from_)", "Step 3.5 (render.py reads from clone path)"]
+      verification_items: ["Step 5.4 (test_render)"]
+      status: covered
+
+    - field: "import.to (path inside rendered plugin)"
+      task_items: ["Step 3.3 (ImportSpec.to)", "Step 3.5 (render.py writes to staging)"]
+      verification_items: ["Step 5.4 (test_render)"]
+      status: covered
+
+    - field: "import.kind (agent|skill|command|template|script|other; reserved: hook-config, hook-script)"
+      task_items: ["Step 3.3 (RESERVED_KINDS_V0_1 frozenset)", "Step 4.12 (bad-hook-kind.yaml)"]
+      verification_items: ["Step 5.2 (test_manifest - hook kind rejected)"]
+      status: covered
+
+    - field: "import.requires (optional array of plugin-internal to paths)"
+      task_items: ["Step 3.3 (ImportSpec.requires)", "Step 4.6 (good.yaml has requires)", "Step 7.3 (manifest.yaml - requires fields per command)"]
+      verification_items: ["Step 5.4 (test_render - co-import enforcement)"]
+      status: covered
+
+    - field: "plugin.name (required, kebab-case)"
+      task_items: ["Step 3.3 (manifest.py - kebab-case enforcement on plugin.name)"]
+      verification_items: ["Step 5.2 (test_manifest - kebab-case plugin name enforced)"]
+      status: covered
+
+    - field: "marketplace.name (required, kebab-case, no Anthropic-reserved)"
+      task_items: ["Step 3.3 (MarketplaceSpec dataclass)"]
+      verification_items: []
+      status: partial
+      gap: "No task item explicitly asserts 'must not match Anthropic-reserved name'. kebab-case enforcement on plugin.name covered; no reserved-name list check."
+
+  # ============================================================
+  # META.JSON SCHEMA COVERAGE (§6)
+  # ============================================================
+  meta_json_schema_coverage:
+    - field: "schema_version: '1'"
+      task_items: ["Step 3.6 (metadata.py - META_JSON_SCHEMA_VERSION constant)"]
+      verification_items: ["Step 5.5 (test_metadata - meta_json schema_version is '1')"]
+      status: covered
+
+    - field: "plugin_name: 'ironops-devops'"
+      task_items: ["Step 3.6 (metadata.py)"]
+      verification_items: ["Step 5.5 (test_metadata)"]
+      status: covered
+
+    - field: "built_at: ISO-8601 UTC"
+      task_items: ["Step 3.6 (metadata.py - write_meta_json)"]
+      verification_items: ["Step 5.5 (test_metadata - meta_json built_at is ISO-8601 UTC)"]
+      status: covered
+
+    - field: "builder_version: IronOps git SHA"
+      task_items: ["Step 3.6 (metadata.py - _resolve_builder_version)"]
+      verification_items: ["Step 5.5 (test_metadata - builder_version 40-char hex regex)"]
+      status: covered
+
+    - field: "manifest_sha256: sha256 of manifest.yaml"
+      task_items: ["Step 3.3 (manifest.py - raw_sha256 computed via hashlib)", "Step 3.6 (metadata.py)"]
+      verification_items: ["Step 5.5 (test_metadata - manifest_sha256 matches input)"]
+      status: covered
+
+    - field: "sources[]: id, repo, ref, resolved_sha, imports[]"
+      task_items: ["Step 3.4 (sources.py - ClonedSource)", "Step 3.6 (metadata.py - META.json sources fanout)"]
+      verification_items: ["Step 5.5 (test_metadata - sources/imports enumerates every file)"]
+      status: covered
+
+    - field: "summary: agent_count, skill_count, command_count, total_files"
+      task_items: ["Step 3.6 (metadata.py - summary counts)"]
+      verification_items: ["Step 5.5 (test_metadata - summary counts correct)", "Step 6.4 (test_golden_output - file count matches summary total_files)"]
+      status: covered
+
+  # ============================================================
+  # PIPELINE STAGE COVERAGE (§7 - 8 stages)
+  # ============================================================
+  pipeline_stage_coverage:
+    - stage: "Stage 0 PREFLIGHT"
+      spec_section: §7
+      task_items: ["Step 3.9 (pipeline.py - _stage_0_preflight: verify python/git/rsync via shutil.which, verify IronOps clean tree via _resolve_builder_version)"]
+      verification_items: ["Step 6.1 (test_pipeline)"]
+      status: covered
+
+    - stage: "Stage 1 CLONE"
+      spec_section: §7
+      task_items: ["Step 3.4 (sources.py - clone_sources)", "Step 3.9 (pipeline.py - _stage_1_clone; note: manifest parsed at start of Stage 1 before iterating sources, per task §3.9 deviation note)"]
+      verification_items: ["Step 5.3 (test_sources)", "Step 6.1 (test_pipeline)"]
+      status: covered
+      note: "Tasklist Step 3.9 explicitly documents a deviation from spec §7 ordering: spec lists CLONE before READ MANIFEST but the manifest must be parsed first to know what to clone. The clone iterates manifest sources inside Stage 1 boundary."
+
+    - stage: "Stage 2 READ MANIFEST"
+      spec_section: §7
+      task_items: ["Step 3.3 (manifest.py - load_manifest)", "Step 3.9 (pipeline.py - _stage_2_read_manifest: documented as no-op re-validation pass since parse happened at start of Stage 1; re-asserts FR-14/15/16 invariants for spec-traceability)"]
+      verification_items: ["Step 5.2 (test_manifest)", "Step 6.1 (test_pipeline)"]
+      status: covered
+
+    - stage: "Stage 3 RENDER"
+      spec_section: §7
+      task_items: ["Step 3.5 (render.py - render_to_staging, enforce_co_imports, enforce_path_safety)", "Step 3.9 (pipeline.py - _stage_3_render)"]
+      verification_items: ["Step 5.4 (test_render)", "Step 6.1 (test_pipeline)"]
+      status: covered
+
+    - stage: "Stage 4 WRITE METADATA"
+      spec_section: §7
+      task_items: ["Step 3.6 (metadata.py - 4 emitters)", "Step 3.9 (pipeline.py - _stage_4_write_metadata)"]
+      verification_items: ["Step 5.5 (test_metadata)", "Step 6.1 (test_pipeline)"]
+      status: covered
+
+    - stage: "Stage 5 VALIDATE"
+      spec_section: §7
+      task_items: ["Step 3.7 (validate.py - run_validator)", "Step 3.9 (pipeline.py - _stage_5_validate)"]
+      verification_items: ["Step 6.1 (test_pipeline)", "Step 7.9 (claude plugin validate smoke)"]
+      status: covered
+
+    - stage: "Stage 6 PUBLISH"
+      spec_section: §7
+      task_items: ["Step 3.8 (publish.py - publish_to_marketplace)", "Step 3.9 (pipeline.py - _stage_6_publish; SKIPPED when dry_run=True)"]
+      verification_items: ["Step 6.1 (test_pipeline)", "Step 6.2 (test_atomicity)"]
+      status: covered
+
+    - stage: "Stage 7 REPORT"
+      spec_section: §7
+      task_items: ["Step 3.9 (pipeline.py - _stage_7_report: stdout summary with counts/SHAs/validator output/push status)"]
+      verification_items: ["Step 6.1 (test_pipeline - pipeline stage timing logged)"]
+      status: covered
+
+  # ============================================================
+  # SHORTLIST COVERAGE (§13)
+  # ============================================================
+  shortlist_coverage:
+    - kind: agent
+      total_in_spec: 11
+      task_listed: 11
+      task_items: ["Step 7.3 (manifest.yaml lists all 11)"]
+      verification_items: ["Step 6.4 (test_golden_output - 11 agents)"]
+      missing: []
+      status: covered
+      spec_list:
+        - devops-architect
+        - system-architect
+        - security-engineer
+        - root-cause-analyst
+        - performance-engineer
+        - backend-architect
+        - quality-engineer
+        - pm-agent
+        - self-review
+        - technical-writer
+        - requirements-analyst
+
+    - kind: skill
+      total_in_spec: 8
+      task_listed: 10
+      task_items: ["Step 7.3 (manifest.yaml lists 10 skills + prd commented out)"]
+      verification_items: ["Step 6.4 (test_golden_output)"]
+      missing: []
+      status: covered
+      note: "Spec §13 says '~8 skills'. Tasklist Step 7.3 expands to 10 by adding sc-cleanup-audit-protocol + sc-task-protocol to satisfy FR-4 co-imports for cleanup-audit and task commands. prd skill commented out per OQ-6 deferral to v0.2."
+      spec_list:
+        - sc-troubleshoot-protocol
+        - sc-crash-recovery
+        - sc-cli-portify-protocol
+        - task
+        - task-builder
+        - tech-research
+        - tdd
+        - tech-reference
+      tasklist_additions:
+        - sc-cleanup-audit-protocol
+        - sc-task-protocol
+
+    - kind: command
+      total_in_spec: 7
+      task_listed: 7
+      task_items: ["Step 7.3 (manifest.yaml lists all 7 with requires: fields)"]
+      verification_items: ["Step 6.4 (test_golden_output - 7 commands)"]
+      missing: []
+      status: covered
+      spec_list:
+        - troubleshoot
+        - git
+        - cli-portify
+        - cleanup-audit
+        - task
+        - research
+        - workflow
+
+unmapped_requirements: []
+# All FR-1..FR-16 are covered (no unmapped). NFR partials noted above (NFR-2, NFR-5, NFR-8).
+# AC partials noted above (AC-7 manual smoke documented but not automated; AC-9 guard-coverage matrix missing).
+
+unmapped_task_items:
+  # Bookkeeping / process steps with no direct spec anchor (intentional — they exist for task execution mechanics)
+  - "Step 1.1 (Start task execution / frontmatter update — bookkeeping)"
+  - "Step 1.2 (Create handoff directories — bookkeeping)"
+  - "Step 1.3 (Build implementation inventory from research — process)"
+  - "Step 3.1 (src/ironops/__init__.py — package marker, no FR anchor)"
+  - "Step 3.11 (pyproject.toml — packaging, supports FR-12 implicitly via uv pip install)"
+  - "Step 3.12 (Makefile — convenience targets, no spec anchor)"
+  - "Step 3.13 (.gitignore — repo hygiene, no spec anchor)"
+  - "Step 3.14 (.python-version — pyenv hint, no spec anchor)"
+  - "Step 3.15 (Phase 3 lint QA gate — process)"
+  - "Step 4.1-4.5 (test package markers, conftest — test infrastructure)"
+  - "Step 5.6 (unit tests QA gate — process)"
+  - "Step 6.7 (integration tests QA gate — process)"
+  - "Step 7.1 (test.yml CI workflow — CI infrastructure; backs AC-1 indirectly)"
+  - "Step 7.4 (docs/ARCHITECTURE.md — documentation, supports AC-7 indirectly)"
+  - "Step 7.5 (docs/MANIFEST_AUTHORING.md — documentation, includes NFR-3 enforcement note)"
+  - "Step 7.6 (docs/MARKETPLACE_BOOTSTRAP.md — OQ-3 resolution, supports AC-7)"
+  - "Step 7.7 (docs/CHANGELOG.md — supports NFR-8 backwards-compat tracking)"
+  - "Step 7.8 (README.md replacement — documentation)"
+  - "Step 8.1 (Aggregate QA inputs — process)"
+  - "Step 8.2 (Spawn rf-qa task-integrity — process)"
+  - "Step 8.3 (Apply QA verdict and fix-cycle — process)"
+  - "Step 9.1 (Verify task outputs — process)"
+  - "Step 9.2 (Final validation evidence — process; re-runs validation suite)"
+  - "Step 9.3 (Task summary — process)"
+  - "Step 9.4 (Mark task complete — bookkeeping)"
+# Note: These items are process scaffolding, not spec-violating additions. They are listed for transparency.
+
+# ============================================================
+# COVERAGE STATISTICS
+# ============================================================
+coverage_summary:
+  fr_total: 16
+  fr_covered: 16
+  fr_partial: 0
+  fr_unmapped: 0
+  fr_coverage_pct: 100.0
+
+  nfr_total: 9
+  nfr_covered: 6
+  nfr_partial: 3
+  nfr_unmapped: 0
+  nfr_coverage_pct: 66.7  # partials counted as not-fully-covered
+
+  ac_total: 10
+  ac_covered: 8
+  ac_partial: 2
+  ac_unmapped: 0
+  ac_coverage_pct: 80.0
+
+  manifest_schema_fields_total: 11
+  manifest_schema_fields_covered: 10
+  manifest_schema_fields_partial: 1
+  manifest_schema_fields_coverage_pct: 90.9
+
+  meta_json_schema_fields_total: 7
+  meta_json_schema_fields_covered: 7
+  meta_json_schema_fields_coverage_pct: 100.0
+
+  pipeline_stages_total: 8
+  pipeline_stages_covered: 8
+  pipeline_stages_coverage_pct: 100.0
+
+  shortlist_agents_in_spec: 11
+  shortlist_agents_in_task: 11
+  shortlist_skills_in_spec: 8
+  shortlist_skills_in_task: 10
+  shortlist_commands_in_spec: 7
+  shortlist_commands_in_task: 7
+  shortlist_coverage_pct: 100.0
+
+  total_spec_requirements: 51  # 16 FR + 9 NFR + 10 AC + 7 META.json fields + 8 pipeline stages + 1 shortlist composite
+  total_covered: 45
+  total_partial: 6
+  total_unmapped: 0
+  coverage_pct_strict: 88.24  # covered/total
+  coverage_pct_weighted: 94.12  # (covered + 0.5 * partial) / total
+
+# ============================================================
+# KEY FINDINGS SUMMARY
+# ============================================================
+findings:
+  strengths:
+    - "100% FR coverage: every FR-1..FR-16 has at least one implementing task item AND at least one verification item."
+    - "All 8 pipeline stages (§7) are explicitly mapped to pipeline.py private functions in Step 3.9."
+    - "META.json schema (§6) 7/7 fields covered with explicit test assertions in Step 5.5."
+    - "Spec amendments (Phase 2) are explicit, documented, and traceable to disposition D3 (NFR-7 PUBLISH_FAILED) and D4 (§2.1 + §17 src/ironops/ package location)."
+    - "Guard Boundary Table (§9) rows are exercised across test_manifest, test_sources, test_render, test_metadata, test_negative."
+
+  partial_coverage_gaps:
+    - id: NFR-2
+      gap: "Wall-clock budget (<60s soft, 300s hard) — pipeline.py has timing instrumentation per Step 3.9 but no test asserts the threshold. Risk: NFR-2 regression undetectable in CI."
+    - id: NFR-5
+      gap: "No test explicitly asserts the builder never `exec`s upstream-supplied shell scripts. Implicit via copy-only semantics but unstated."
+    - id: NFR-8
+      gap: "Cross-version schema compat untestable now (no v0.2 exists). Tracked via CHANGELOG discipline only — acceptable for v0.1 but should evolve in v0.x."
+    - id: AC-7
+      gap: "End-to-end install-and-invoke flow is documented (MARKETPLACE_BOOTSTRAP.md, README.md) but NOT automated. Spec §12 explicitly notes 'Manual smoke test' — this is an authorized deviation, not a drift."
+    - id: AC-9
+      gap: "No aggregated Guard Boundary Table coverage matrix. Individual guards are tested but Step 6.6 (test_inventory.md) covers FR/NFR/AC, not the §9 guard rows. Risk: AC-9 'Coverage report in build artifacts' verification clause unsatisfied."
+    - id: manifest.marketplace.name
+      gap: "No 'must not match Anthropic-reserved name' check in manifest.py. Implementation surface (Step 3.3) does not enumerate reserved names."
+
+  authorized_deviations:
+    - "Step 3.9 pipeline.py: manifest parsed at START of Stage 1 (not Stage 2 per spec §7 ordering). Documented inline — spec §7 lists CLONE before READ MANIFEST but clone needs manifest.sources to iterate. Stage 2 becomes a no-op re-validation pass. Documented as spec-traceability, not a violation."
+    - "Step 3.4 sources.py: uses `git ls-remote --symref <url> HEAD` rather than `git remote show origin`. Documented inline — ls-remote works from URL alone (no clone required). FR-2-A3 allows 'git remote show or equivalent'."
+    - "Step 7.3 manifest.yaml: spec §13 says '~8 skills' but tasklist lists 10. Additions (sc-cleanup-audit-protocol, sc-task-protocol) are mandated by FR-4 co-import enforcement — the cleanup-audit and task commands reference these protocols. Without them, FR-4 would reject the build."
+
+  potential_drift:
+    - "AC-9 verification clause 'Coverage report in build artifacts' has no implementing task item. Test inventory (Step 6.6) covers FR/NFR/AC but not the §9 guard rows aggregated. Measurable gap not addressed by current task design."
+    - "NFR-2 wall-clock budget assertion absent from any test. Pipeline timing instrumentation exists but no assertion enforces NFR-2's 60s soft / 300s hard ceilings."
+
+# Status: Complete

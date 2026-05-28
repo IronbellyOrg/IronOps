@@ -1,0 +1,35 @@
+evidence_validator:
+  report_path: /config/workspace/IronOps/.dev/reflect/uc1-ironops-builder-prerun/REPORT.md
+  timestamp: "2026-05-27T17:30:00Z"
+  citations_total: 34
+  citations_inferred: 2
+  citations_revalidated: 32
+  citations_survived: 32
+  citations_dropped: 0
+  drops: []
+  zero_drop_flag: true
+  zero_drop_rationale: >
+    Zero drops on a 34-citation report warrants scrutiny. Three factors reduce concern:
+    (1) The report is a pre-execution reflection on a well-structured tasklist + spec — both
+    documents are dense, internally consistent, and machine-generated. The tasklist's MDTM
+    template enforces rigid B2-compliant item structure with explicit research citations,
+    leaving little room for citation fabrication. (2) The 3 reviewer cards were produced by
+    Claude-class models operating on the same source documents, so citation accuracy is
+    high by construction. (3) All 12 explicit file:line citations and all 20 step/section
+    references verified against the actual SPEC and TASKLIST content with no fabrication
+    detected. The two discrepancies found are prose errors in finding descriptions, not
+    citation fabrication — the Evidence column citations are all accurate. This zero-drop
+    should NOT be treated as an automatic green light; the orchestrator should independently
+    assess whether the report's analysis conclusions follow from the verified evidence.
+  prose_discrepancies_not_drops:
+    - location: "H3 finding text (not Evidence column)"
+      claim: "4 phase-QA gates at Steps 3.15, 5.6, 6.7, 7.10"
+      reality: "Steps 3.15, 5.6, 6.7 exist. Step 7.10 does NOT exist. Actual Phase 7 QA gate is Step 7.9 (L379). Evidence column citations (L151, L155, L285, L379) are all accurate."
+      severity: LOW
+      action: "Fix in REPORT.md: 7.10 → 7.9"
+    - location: "H7 finding text (not Evidence column)"
+      claim: "Row 23: validator non-zero exit codes 2..255 + timeout"
+      reality: "SPEC §9 Row 23 (L423) range is '1..255' (not 2..255). 'timeout' does not appear in Row 23 — it appears in Row 24 (L424) about upstream clone failure. Evidence column citation 'SPEC §9 L399-426' is verified."
+      severity: LOW
+      action: "Fix in REPORT.md: '2..255' → '1..255'; remove 'timeout' from Row 23 claim (move to Row 24 reference)"
+  verdict: PASS

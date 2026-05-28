@@ -1,0 +1,20 @@
+selected_tier: 2
+fired_rule_number: 6
+composite_score: 6.0
+per_signal_breakdown:
+  scope_size: 2
+  task_count: 2
+  blast_radius: 1
+  spec_density: 1
+  ambiguity_signals: 0
+escalation_reason: "calibrated_confidence_below_0.85 AND S_domains>=3 (multi-domain: src, tests, CI, docs)"
+calibrated_confidence: 0.76
+self_reported_confidence: 0.82
+calibration_delta: -0.06
+S_scope_files_est: 47
+S_domains: 4
+S_dev_density_est: 0.10
+coverage_pct: 0.94
+coverage_undefined: false
+reviewer_count_target: 2
+t2_model_class_diversity: degraded

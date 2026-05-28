@@ -1,0 +1,7 @@
+input_tree_sha256: "de276173b220c0f350bd1950b87c113e2a55e2fadd97554ce8f54a7efd3f0e1b"
+file_list:
+  - path: .dev/releases/1.0/0.1/SPEC_IRONOPS_DEVOPS_PLUGIN.md
+    sha256: 4f1bb6de73e8620f5c95b0077e05f87bdffbdb02032d88c0a86ff52273e7cb12
+  - path: .dev/tasks/to-do/TASK-RF-20260527-153758-ironops-builder/TASK-RF-20260527-153758-ironops-builder.md
+    sha256: 09c7ce99bf2c4d8ca819f9a2149dc623d21c992368130bc7275c55d53722f8d1
+file_count: 2
