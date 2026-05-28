@@ -200,6 +200,7 @@ def write_marketplace_json(manifest: Manifest, staging_dir: Path) -> Path:
     payload = {
         "name": manifest.marketplace.name,
         "owner": manifest.marketplace.owner,
+        "description": f"Curated Claude Code plugins from {manifest.marketplace.name}.",
         "plugins": [
             {
                 "name": manifest.plugin.name,
