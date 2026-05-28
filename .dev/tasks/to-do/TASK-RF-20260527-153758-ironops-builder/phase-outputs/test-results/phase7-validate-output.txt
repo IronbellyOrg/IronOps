@@ -1,1 +1,2 @@
+[ironops] stage 0: preflight
 [BUILDER_DIRTY_TREE] IronOps working tree is dirty (FR-12) — commit or stash before building
